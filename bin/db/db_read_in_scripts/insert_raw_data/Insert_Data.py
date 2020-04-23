@@ -18,8 +18,7 @@ import pymysql.cursors                                # To Connect to MySQL Data
 
 from warnings import filterwarnings                   # Handle warnings from mysql.
 
-
-# import pickle                                       # Provide pickle capabilities
+from pickle import load                               # Provide pickle capabilities
 # from Game import Game_Driver
 # from Event import Event_Driver
 # from Player import Player_Driver
@@ -31,8 +30,6 @@ from warnings import filterwarnings                   # Handle warnings from mys
 # import sys
 # import time                                         # Gain access to time capabilities
 
-PICKLE_DIR = r"C:\Users\micha\Documents\GitHub\BaseballAnalytics\bin\Read_Data_Into_Database\Pickled_DataFrames"                          # Directory with pickled dataframes
-
 class Insert_Driver():
 
     def __init__(self):
@@ -42,7 +39,8 @@ class Insert_Driver():
 
         self.path_to_log_files = Path("BaseballAnalytics/logs/insert_file_logs/")                                               # The path to the log file.
         self.path_to_raw_data = Path("BaseballAnalytics/bin/db/raw_data/")                                                      # The path to the raw data that will be inserted into the database.
-        self.path_to_player_list = self.path_to_raw_data / 'rosters' / 'MLB_Player_Name.csv'                                    # The file containing the player data.
+        self.path_to_player_list = self.path_to_raw_data / 'rosters'                                                            # The folder containing the player data.
+        self.path_to_pickle_player_data = self.path_to_player_list / 'pickle_player_data.pickle'                                # The path to the pickle file containing the player information.
         self.conn = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
 
     def __remove_query_redunancies(self, string_name):
@@ -67,6 +65,17 @@ class Insert_Driver():
             return new_string
         return None                                          # Return none when the list is null.
 
+    def __error_information_pitcher(self, event_query_dict, db_connection):
+
+        # Function Description: Insert the data into the Error Information Pitcher table. Data will only be
+        #    inserted if the data exists thus making its storage dynamic.
+        # Function Parameters: event_query_dict (The event dictionary organising the file line data.), 
+        #    db_connection (The existing connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
+        # Function Returns: Nothing
+
+        pass
+
     def __game_table_insertion(self, event_query_dict, db_connection):
 
         # Function Description: Given a line from the text file, propogate the query throughout the entire database.
@@ -78,7 +87,7 @@ class Insert_Driver():
         game_driver = Game_Driver(db_connection)
         check_game = game_driver.check_game(event_query_dict['Game_ID'])                                           # Ensure the game is inserted.
         if check_game == False: 
-            check_game = game_driver.insertGame(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])    # Insert the game if it is not found.
+            check_game = game_driver.insert_game(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])    # Insert the game if it is not found.
         if check_game == False:
             raise UnrecognisableMySQLBehaviour("Unable to insert the game into the table after the game was not found within the table.")
 
@@ -93,16 +102,18 @@ class Insert_Driver():
         check_event = event_driver.insert_event_instance(event_query_dict)
         if (not check_event): raise UnrecognisableMySQLBehaviour("Query Failed attempting to insert into the Event_Instance table.")
 
-    def __propogate_line_into_tables(self, file_line, db_connection):
+    def __propogate_line_into_tables(self, file_line, player_driver, db_connection):
 
         # Function Description: Given a line from the text file, propogate the query throughout the entire database.
-        # Function Parameters: file_line (A line from an event file.), db_connection (The connection to the database.)
+        # Function Parameters: file_line (A line from an event file.), player_driver (A reusable player driver to be used to propogate date throughout the database.), 
+        #   db_connection (The connection to the database.)
         # Function Throws: Nothing
         # Function Returns: Nothing
 
         event_query_dict = Event_Query_Dict(file_line)                                        # Structure the data from the file line.
         self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)         # Propogate into game table. 
         self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)     # Progogate into the event instance table.
+        self.__error_information_pitcher(event_query_dict.event_query_dict, db_connection)
 
     def process_event_files(self):
 
@@ -113,33 +124,25 @@ class Insert_Driver():
         # Function Returns: Nothing
 
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
+        with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
+        player_driver = Player_Driver(db_connection, self.path_to_player_list, player_reference)                # Let us only create this once to avoid needless File I/O processing.
         for file_name in listdir(path_to_event_files):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
             for file_line in event_file:                                # Processes each file line by line.
-                self.__propogate_line_into_tables(file_line, self.conn)
+                self.__propogate_line_into_tables(file_line, player_driver, self.conn)
                 break  # STOP AT ONE LINE
             event_file.close()
 
-############################################ TESTING ENVIRONMENT ############################################
-game_query = """INSERT IGNORE INTO game_day (Visiting_Team, Home_Team, Date, Game_ID, NumGameInDay) Values 
-                ('TOR', 'DET', '2019-02-26', 'TOR201903280', 0);"""  
-player_information_query = """INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values 
-                ('Phoney_Player_ID', 'Krakovsky', 'Michael', '2000-01-12')"""
-event_query = """INSERT IGNORE INTO event_instance (idEvent, Game_ID, Inning, Outs, Vis_Score, Home_Score, Event_Text, Event_Type, 
-                    Batter_Event_Flag, AB_Flag, Hit_Value, SH_Flag, SF_Flag, Outs_on_Play, Double_Play_Flag, Triple_Play_Flag, 
-                    RBI_On_Play, Wild_Pitch_Flag, Passed_Ball_Flag, Fielded_By, Batted_Ball_Type, Bunt_Flag, Foul_Flag, 
-                    Hit_Location, Num_Errors, Batter_Dest, Play_on_Batter, New_Game_Flag, End_Game_Flag) 
-                    Values ('Phony_Event_ID', 'Phoney_Game_ID', 1, 0, 0, 0, 'X', 0, 'F', 'T', 2, 'T', 'F', 0, 'F', 'F', 1, 'T', 
-                    'F', 2, 'G', 'F', 'F', 'LF', 0, 2, 'F', 'F', 'F')"""
-pitcher_in_event = """INSERT IGNORE INTO pitcher_in_event (player_id, event_ID, Pitcher_Hand, Pitch_Sequence) values 
-                ('Phoney_Player_ID', 'Phony_Event_ID', 'R', 'BBBB')"""
-
 ######### READ IN PLAYER FILE FIRST!!!!
-# db_connection = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
+db_connection = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
 # cursor = db_connection.cursor()
-insert_driver = Insert_Driver()
-insert_driver.process_event_files()
+#insert_driver = Insert_Driver()
+#insert_driver.process_event_files()
+player_driver = Player_Driver(db_connection, Path("BaseballAnalytics/bin/db/raw_data/rosters/"))     # Let us only create this once to avoid needless File I/O processing.
+#print(player_driver.check_and_insert_player('albec101'))
+print(player_driver.check_and_insert_player('albrj101'))
+
 
 # filterwarnings('error')                         # Convert warnings into exceptions to be caught.                             
 # cursor.execute('DELETE FROM game_day where game_day.game_ID = \'TOR201903280\'')               # Empty the tables.

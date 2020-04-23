@@ -53,16 +53,16 @@ class Game_Driver:
         query = "select Game_ID from game_day where Game_ID = \'" + game_Id + "\'"
         return bool(self.__dbConnect__.cursor().execute(query))
 
-    def insertGame(self, game_Id, awayTeam):
+    def insert_game(self, game_Id, away_team):
         
         # Function Description: Insert the minimum requirements to a game record which include the game_Id (Formatted: TEX201504290), 
         # and the away team. Other parameters wil be derived from the Event_ID.
-        # Function Parameters: game_id (The game ID from the Event files), awayTeam (The away team in the game)
+        # Function Parameters: game_id (The game ID from the Event files), away_team (The away team in the game)
         # Function Throws: None
         # Function Returns: True (A new game was successfully inserted) False (Nothing was inserted)
 
         parse_game_id = self.__getQueryComponets(game_Id)            # Returned as [homeTeam, date, numGameInDay]
-        query = "INSERT IGNORE INTO game_day (Visiting_Team, Home_Team, Date, Game_ID, NumGameInDay) Values (\'" + awayTeam + "\', \'" + parse_game_id[0] + "\', \'" + parse_game_id[1] + "\', \'" + game_Id + "\', \'" + parse_game_id[2] + "\');"  
+        query = "INSERT IGNORE INTO game_day (Visiting_Team, Home_Team, Date, Game_ID, NumGameInDay) Values (\'" + away_team + "\', \'" + parse_game_id[0] + "\', \'" + parse_game_id[1] + "\', \'" + game_Id + "\', \'" + parse_game_id[2] + "\');"  
         cursor = self.__dbConnect__.cursor()                   
         filterwarnings('error')                                      # Convert warnings into exceptions to be caught.                   
         try:

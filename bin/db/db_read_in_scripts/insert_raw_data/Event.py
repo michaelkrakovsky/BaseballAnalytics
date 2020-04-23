@@ -6,7 +6,6 @@
 from pymysql import connect
 from warnings import filterwarnings                         # Handle warnings from mysql.
 from hashlib import sha224
-from pyperclip import copy
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
 from Player import Player_Driver
 from Game import Game_Driver
@@ -158,7 +157,7 @@ class Event_Driver:
         else:
             raise ValueError("ERROR: || Class -> Event_Driver || Function -> __init__ || Reason -> Connection parameter is invalid.")
     
-    def __buildQueryString(self, column_names, event_dict, table_name):
+    def __build_query_string(self, column_names, event_dict, table_name):
 
         # Function Description: Build Insert statements based on the names and values given.
         # Parameters: self (The instance of the object), column_names (The names to insert), 
@@ -167,20 +166,20 @@ class Event_Driver:
         # Returns: query (The query string)
 
         query = "INSERT IGNORE INTO " + table_name + " ("
-        secondHalfQuery = ") Values ("
+        second_query_half = ") Values ("
         for i in column_names:
             query += i + ", "                                 # Add the column names.  
             try:
                 val = int(event_dict[i])
-                secondHalfQuery += str(val) + " , "
+                second_query_half += str(val) + " , "
             except ValueError:                                # Must be a string, insert as a string.
-                secondHalfQuery += "\'" + event_dict[i] + "\' , "
+                second_query_half += "\'" + event_dict[i] + "\' , "
         query = query[:-2]                                    # Remove the ending of the string (The comma and space)
-        secondHalfQuery = secondHalfQuery[:-3]
-        query += secondHalfQuery + ");"
+        second_query_half = second_query_half[:-3]
+        query += second_query_half + ");"
         return query
 
-    def __insertQuery(self, column_names, event_dict, table_name):
+    def __insert_event_dynamic(self, column_names, event_dict, table_name):
 
         # Function Description: Different types of query depending on the Column Names and Column Values. 
         # Function Parameters: column_names (The names to insert), event_dict (The values of the event in a dictionary)
@@ -188,12 +187,11 @@ class Event_Driver:
         # Function Throws: None
         # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
 
-        query = self.__buildQueryString(column_names, event_dict, table_name)
-        aCursor = self.__dbConnect__.cursor() 
+        query = self.__build_query_string(column_names, event_dict, table_name)
+        cursor = self.__dbConnect__.cursor() 
         filterwarnings('error')                                      # Convert warnings into exceptions to be caught.                   
         try:
-            copy(query)     #### DELETEEEE
-            status = aCursor.execute(query)                          # Execute Query: And close the cursor.
+            status = cursor.execute(query)                          # Execute Query: And close the cursor.
             self.__dbConnect__.commit()    
         except Warning as warn:
             warn = str(warn)                                         # Ensure the warning is a duplicate entry warning to avoid data problems     
@@ -202,7 +200,7 @@ class Event_Driver:
                 raise UnrecognisableMySQLBehaviour("ERROR: || Class -> Game_Driver || Function -> __insertQuery || Reason -> The warning was not the expected 'Duplicate Entry'. Please investigate to avoid data entry discrepancies.")
             status = 0
         filterwarnings('always')                        # Turn the filter for warnings back on.
-        aCursor.close()
+        cursor.close()
         if (status == 1):
             return True
         return False 
@@ -214,7 +212,7 @@ class Event_Driver:
         # Function Throws: Nothing
         # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)                 
         
-        return self.__insertQuery(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
+        return self.__insert_event_dynamic(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
                                     'Batter_Event_Flag', 'AB_Flag', 'Hit_Value', 'SH_Flag', 'SF_Flag', 'Outs_on_Play', 'Double_Play_Flag', 
                                     'Triple_Play_Flag', 'RBI_On_Play', 'Wild_Pitch_Flag', 'Passed_Ball_Flag', 'Fielded_By', 'Batted_Ball_Type', 
                                     'Bunt_Flag', 'Foul_Flag', 'Hit_Location', 'Num_Errors', 'Batter_Dest', 'Play_on_Batter', 'New_Game_Flag', 
