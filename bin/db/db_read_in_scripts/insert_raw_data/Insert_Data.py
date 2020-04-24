@@ -73,7 +73,7 @@ class Insert_Driver():
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
         # Function Returns: Nothing
 
-        event_driver = Event_Driver(db_connection)
+        event_driver = Event_Driver(db_connection) 
 
     def __batter_in_event_insertion(self, event_query_dict, db_connection):
 
