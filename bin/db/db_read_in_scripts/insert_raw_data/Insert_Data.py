@@ -65,6 +65,16 @@ class Insert_Driver():
             return new_string
         return None                                          # Return none when the list is null.
 
+    def __pitcher_in_event_insertion(self, event_query_dict, db_connection):
+
+        # Function Description: The function will insert the contents into the Pitcher_In_Event table.
+        # Function Parameters: event_query_dict (The event query dictionary to store the results.), 
+        #     db_connection (The current open connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
+        # Function Returns: Nothing
+
+        event_driver = Event_Driver(db_connection)
+
     def __batter_in_event_insertion(self, event_query_dict, db_connection):
 
         # Function Description: The function will insert all the proper contents into the Batter_In_Event table.
@@ -74,9 +84,9 @@ class Insert_Driver():
         # Function Returns: Nothing
 
         event_driver = Event_Driver(db_connection)
-        check_insertion = insert_event_dynamic(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
-                                            'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
-                                            event_query_dict.event_query_dict, 'Batter_In_Event')
+        check_insertion = event_driver.insert_event_dynamic(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
+                                                        'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
+                                                        event_query_dict, 'Batter_In_Event')
         if not check_insertion: raise UnrecognisableMySQLBehaviour("The query into the Batter_In_Event Table was unsucessful.")
 
     def __error_information_insertion(self, event_query_dict, db_connection):
@@ -138,7 +148,7 @@ class Insert_Driver():
         self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)         # Propogate into game table. 
         self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)     # Propogate into the event instance table.
         self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)  # Propogate into the error information table.
-        self.__batter_in_event_insertion()
+        self.__batter_in_event_insertion(event_query_dict.event_query_dict, db_connection)   #TEST ME
 
     def process_event_files(self):
 
