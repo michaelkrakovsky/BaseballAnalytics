@@ -65,16 +65,26 @@ class Insert_Driver():
             return new_string
         return None                                          # Return none when the list is null.
 
-    def __error_information_pitcher(self, event_query_dict, db_connection):
+    def __error_information_insertion(self, event_query_dict, db_connection):
 
-        # Function Description: Insert the data into the Error Information Pitcher table. Data will only be
-        #    inserted if the data exists thus making its storage dynamic.
+        # Function Description: Insert the data into the Error Information Pitcher tables. Data will only be
+        #    inserted if the data exists thus making its storage dynamic. There are three tables related to pitcher errors.
         # Function Parameters: event_query_dict (The event dictionary organising the file line data.), 
         #    db_connection (The existing connection to the database.)
         # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
         # Function Returns: Nothing
 
-        pass
+        event_driver = Event_Driver(db_connection)
+        event_status = False                                                        # Anything other than 0 indicates that an error was incurred.
+        if int(event_query_dict['1st_Error_Player']) != 0:                          # Stop propogating if we get a zero.
+            event_status = event_driver.insert_error_information(event_query_dict['1st_Error_Player'], event_query_dict['1st_Error_Type'], event_query_dict['idEvent'], 1)
+            if not event_status: raise UnrecognisableMySQLBehaviour("The 1st Error Player was incorrectly inserted.")
+            if int(event_query_dict['2nd_Error_Player']) != 0:
+                event_status = event_driver.insert_error_information(event_query_dict['2nd_Error_Player'], event_query_dict['2nd_Error_Type'], event_query_dict['idEvent'], 2)
+                if not event_status: raise UnrecognisableMySQLBehaviour("The 2nd Error Player was incorrectly inserted.")
+                if int(event_query_dict['3rd_Error_Player']) != 0: 
+                    event_status = event_driver.insert_error_information(event_query_dict['3rd_Error_Player'], event_query_dict['3rd_Error_Type'], event_query_dict['idEvent'], 3)
+                    if not event_status: raise UnrecognisableMySQLBehaviour("The 3rd Error Player was incorrectly inserted.")
 
     def __game_table_insertion(self, event_query_dict, db_connection):
 
@@ -112,8 +122,8 @@ class Insert_Driver():
 
         event_query_dict = Event_Query_Dict(file_line)                                        # Structure the data from the file line.
         self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)         # Propogate into game table. 
-        self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)     # Progogate into the event instance table.
-        self.__error_information_pitcher(event_query_dict.event_query_dict, db_connection)
+        self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)     # Propogate into the event instance table.
+        self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)  # Propogate into the error information table.
 
     def process_event_files(self):
 
@@ -125,7 +135,7 @@ class Insert_Driver():
 
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
         with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
-        player_driver = Player_Driver(db_connection, self.path_to_player_list, player_reference)                # Let us only create this once to avoid needless File I/O processing.
+        player_driver = Player_Driver(self.conn, self.path_to_player_list, player_reference)                # Let us only create this once to avoid needless File I/O processing.
         for file_name in listdir(path_to_event_files):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
@@ -134,15 +144,22 @@ class Insert_Driver():
                 break  # STOP AT ONE LINE
             event_file.close()
 
-######### READ IN PLAYER FILE FIRST!!!!
-db_connection = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
-# cursor = db_connection.cursor()
-#insert_driver = Insert_Driver()
-#insert_driver.process_event_files()
-player_driver = Player_Driver(db_connection, Path("BaseballAnalytics/bin/db/raw_data/rosters/"))     # Let us only create this once to avoid needless File I/O processing.
-#print(player_driver.check_and_insert_player('albec101'))
-print(player_driver.check_and_insert_player('albrj101'))
+def clear_tables():     # Temporary Function to Delete Files
+    db_connection = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
+    cursor = db_connection.cursor()
+    cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
+    cursor.execute('DELETE From game_day;')                 # Game_Day (5)
+    cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
+    cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
+    db_connection.commit()
+    cursor.close() 
 
+######### READ IN PLAYER FILE FIRST!!!!
+# cursor = db_connection.cursor()
+clear_tables()
+insert_driver = Insert_Driver()
+insert_driver.process_event_files()
+#player_driver = Player_Driver(db_connection, Path("BaseballAnalytics/bin/db/raw_data/rosters/"))     # Let us only create this once to avoid needless File I/O processing.
 
 # filterwarnings('error')                         # Convert warnings into exceptions to be caught.                             
 # cursor.execute('DELETE FROM game_day where game_day.game_ID = \'TOR201903280\'')               # Empty the tables.

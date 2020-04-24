@@ -21,4 +21,4 @@
 #DELETE From game_day;
 #select * from event_instance;
 
-
+RENAME TABLE 3rd_error_information_positional TO 3rd_Error_Player;

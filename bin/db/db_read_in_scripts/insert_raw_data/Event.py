@@ -3,12 +3,12 @@
 # Author: Michael Krakovsky
 # Version: 1.0
 
-from pymysql import connect
 from warnings import filterwarnings                         # Handle warnings from mysql.
 from hashlib import sha224
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
 from Player import Player_Driver
 from Game import Game_Driver
+from pyperclip import copy
 
 class Event_Query_Dict:
 
@@ -40,26 +40,25 @@ class Event_Query_Dict:
 
         splitString = full_event_line.replace('"', '')
         splitString = splitString.split(',')
-        if len(splitString) != 96:
-            raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
-        eventDict = {}              # The following is the hard coded dictionary to hold the query information.
-        eventDict['idEvent'] = self.__createHash(full_event_line)  # Map each key to the correct value within the query.
-        eventDict['Game_ID'] = splitString[0]                      # Table Name: Event_Instance
+        if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
+        eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
+        eventDict['idEvent'] = self.__createHash(full_event_line)  # Map each key to the correct value within the query. Table Name: Event_Instance, Error_Information
+        eventDict['Game_ID'] = splitString[0]                      # Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
-        eventDict['Batting_Team'] = splitString[3]                 # Table Name: Event_Instance
+        eventDict['Batting_Team'] = splitString[3]                 
         eventDict['Outs'] = splitString[4]                         # Table Name: Event_Instance
-        eventDict['Balls'] = splitString[5]                        # Table Name: Event_Instance
-        eventDict['Strikes'] = splitString[6]                      # Table Name: Event_Instance
-        eventDict['Pitch_Sequence'] = splitString[7]               # Table Name: Event_Instance
+        eventDict['Balls'] = splitString[5]                        
+        eventDict['Strikes'] = splitString[6]                       
+        eventDict['Pitch_Sequence'] = splitString[7]               
         eventDict['Vis_Score'] = splitString[8]                    # Table Name: Event_Instance
         eventDict['Home_Score'] = splitString[9]                   # Table Name: Event_Instance
-        eventDict['Batter_Name'] = splitString[10]                 # Table Name: Event_Instance
-        eventDict['Batter_Hand'] = splitString[11]                 # Table Name: Event_Instance
+        eventDict['Batter_Name'] = splitString[10]                 
+        eventDict['Batter_Hand'] = splitString[11]                 
         eventDict['Res_Batter_Name'] = splitString[12]
         eventDict['Res_Batter_Hand'] = splitString[13]
-        eventDict['Pitcher_Name'] = splitString[14]                # Table Name: Event_Instance
-        eventDict['Pitcher_Hand'] = splitString[15]                # Table Name: Event_Instance
+        eventDict['Pitcher_Name'] = splitString[14]                
+        eventDict['Pitcher_Hand'] = splitString[15]                
         eventDict['Res_Pitcher_Name'] = splitString[16]
         eventDict['Res_Pitcher_Hand'] = splitString[17]
         eventDict['Catcher'] = splitString[18]
@@ -74,10 +73,10 @@ class Event_Query_Dict:
         eventDict['Second_Runner'] = splitString[27]
         eventDict['Third_Runner'] = splitString[28]
         eventDict['Event_Text'] = splitString[29]                  # Table Name: Event_Instance
-        eventDict['Leadoff_Flag'] = splitString[30]                # Table Name: Event_Instance
-        eventDict['Pinch_Hit_Flag'] = splitString[31]              # Table Name: Event_Instance
-        eventDict['Defensive_Position'] = splitString[32]          # Table Name: Event_Instance
-        eventDict['Lineup_Position'] = splitString[33]             # Table Name: Event_Instance
+        eventDict['Leadoff_Flag'] = splitString[30]                
+        eventDict['Pinch_Hit_Flag'] = splitString[31]              
+        eventDict['Defensive_Position'] = splitString[32]          
+        eventDict['Lineup_Position'] = splitString[33]             
         eventDict['Event_Type'] = splitString[34]                  # Table Name: Event_Instance
         eventDict['Batter_Event_Flag'] = splitString[35]           # Table Name: Event_Instance
         eventDict['AB_Flag'] = splitString[36]                     # Table Name: Event_Instance
@@ -96,12 +95,12 @@ class Event_Query_Dict:
         eventDict['Foul_Flag'] = splitString[49]                   # Table Name: Event_Instance
         eventDict['Hit_Location'] = splitString[50]                # Table Name: Event_Instance
         eventDict['Num_Errors'] = splitString[51]                  # Table Name: Event_Instance
-        eventDict['1st_Error_Player'] = splitString[52] 
-        eventDict['1st_Error_Type'] = splitString[53]
-        eventDict['2nd_Error_Player'] = splitString[54]
-        eventDict['2nd_Error_Type'] = splitString[55]
-        eventDict['3rd_Error_Player'] = splitString[56]
-        eventDict['3rd_Error_Type'] = splitString[57]
+        eventDict['1st_Error_Player'] = splitString[52]            # Table Name: Error_Information (Only if it exists)
+        eventDict['1st_Error_Type'] = splitString[53]              # Table Name: Error_Information (Only if it exists)
+        eventDict['2nd_Error_Player'] = splitString[54]            # Table Name: Error_Information (Only if it exists)
+        eventDict['2nd_Error_Type'] = splitString[55]              # Table Name: Error_Information (Only if it exists)
+        eventDict['3rd_Error_Player'] = splitString[56]            # Table Name: Error_Information (Only if it exists)
+        eventDict['3rd_Error_Type'] = splitString[57]              # Table Name: Error_Information (Only if it exists)
         eventDict['Batter_Dest'] = splitString[58]                 # Table Name: Event_Instance
         eventDict['Runner_On_1st_Dest'] = splitString[59]
         eventDict['Runner_On_2nd_Dest'] = splitString[60]
@@ -132,14 +131,14 @@ class Event_Query_Dict:
         eventDict['Runner_Removed_For_Pinch-Runner_On_3rd'] = splitString[85]
         eventDict['Batter_Removed_For_Pinch_Hitter'] = splitString[86]
         eventDict['Position_of_Batter_removed_for_Pinch_Hitter'] = splitString[87]       
-        eventDict['Fielder_With_First_Putout'] = splitString[88]                         # Table Name: Event_Instance
-        eventDict['Fielder_With_Second_Putout'] = splitString[89]                        # Table Name: Event_Instance
-        eventDict['Fielder_With_Third_Putout'] = splitString[90]                         # Table Name: Event_Instance
-        eventDict['Fielder_With_First_Assist'] = splitString[91]                         # Table Name: Event_Instance
-        eventDict['Fielder_With_Second_Assist'] = splitString[92]                        # Table Name: Event_Instance
-        eventDict['Fielder_With_Third_Assist'] = splitString[93]                         # Table Name: Event_Instance
-        eventDict['Fielder_With_Fourth_Assist'] = splitString[94]                        # Table Name: Event_Instance
-        eventDict['Fielder_With_Fifth_Assist'] = splitString[95]                         # Table Name: Event_Instance
+        eventDict['Fielder_With_First_Putout'] = splitString[88]                     
+        eventDict['Fielder_With_Second_Putout'] = splitString[89]                    
+        eventDict['Fielder_With_Third_Putout'] = splitString[90]                         
+        eventDict['Fielder_With_First_Assist'] = splitString[91]                         
+        eventDict['Fielder_With_Second_Assist'] = splitString[92]                        
+        eventDict['Fielder_With_Third_Assist'] = splitString[93]                         
+        eventDict['Fielder_With_Fourth_Assist'] = splitString[94]                        
+        eventDict['Fielder_With_Fifth_Assist'] = splitString[95]                         
         return eventDict
 
 class Event_Driver:
@@ -179,7 +178,31 @@ class Event_Driver:
         query += second_query_half + ");"
         return query
 
-    def __insert_event_dynamic(self, column_names, event_dict, table_name):
+    def __execute_query(self, query):
+
+        # Function Description: Execute a query regardless of what it is and track its result.
+        # Function Parameters: query (The query that will be executed into the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (The exception is thrown when an unrecongniable warning is retrieved from the query execution.)
+        # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
+
+        cursor = self.__dbConnect__.cursor() 
+        filterwarnings('error')                                     # Convert warnings into exceptions to be caught.                   
+        try:
+            copy(query)
+            status = cursor.execute(query)                          # Execute Query: And close the cursor.
+            self.__dbConnect__.commit()    
+        except Warning as warn:
+            warn = str(warn)                                        # Ensure the warning is a duplicate entry warning to avoid data problems     
+            warnNum = warn[1:5]                         
+            if (warnNum != "1062"):                 # An SQL Warning returning (1062, "Duplicate entry" ----- for key Primary)
+                raise UnrecognisableMySQLBehaviour("ERROR: || Class -> Game_Driver || Function -> __insertQuery || Reason -> The warning was not the expected 'Duplicate Entry'. Please investigate to avoid data entry discrepancies.")
+            status = 0
+        filterwarnings('always')                        # Turn the filter for warnings back on.
+        cursor.close()
+        if (status == 1): return True
+        return False
+
+    def insert_event_dynamic(self, column_names, event_dict, table_name):
 
         # Function Description: Different types of query depending on the Column Names and Column Values. 
         # Function Parameters: column_names (The names to insert), event_dict (The values of the event in a dictionary)
@@ -188,22 +211,7 @@ class Event_Driver:
         # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
 
         query = self.__build_query_string(column_names, event_dict, table_name)
-        cursor = self.__dbConnect__.cursor() 
-        filterwarnings('error')                                      # Convert warnings into exceptions to be caught.                   
-        try:
-            status = cursor.execute(query)                          # Execute Query: And close the cursor.
-            self.__dbConnect__.commit()    
-        except Warning as warn:
-            warn = str(warn)                                         # Ensure the warning is a duplicate entry warning to avoid data problems     
-            warnNum = warn[1:5]                         
-            if (warnNum != "1062"):                 # An SQL Warning returning (1062, "Duplicate entry" ----- for key Primary)
-                raise UnrecognisableMySQLBehaviour("ERROR: || Class -> Game_Driver || Function -> __insertQuery || Reason -> The warning was not the expected 'Duplicate Entry'. Please investigate to avoid data entry discrepancies.")
-            status = 0
-        filterwarnings('always')                        # Turn the filter for warnings back on.
-        cursor.close()
-        if (status == 1):
-            return True
-        return False 
+        return self.__execute_query(query)
 
     def insert_event_instance(self, event_query_dict):
 
@@ -212,8 +220,20 @@ class Event_Driver:
         # Function Throws: Nothing
         # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)                 
         
-        return self.__insert_event_dynamic(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
+        return self.insert_event_dynamic(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
                                     'Batter_Event_Flag', 'AB_Flag', 'Hit_Value', 'SH_Flag', 'SF_Flag', 'Outs_on_Play', 'Double_Play_Flag', 
                                     'Triple_Play_Flag', 'RBI_On_Play', 'Wild_Pitch_Flag', 'Passed_Ball_Flag', 'Fielded_By', 'Batted_Ball_Type', 
                                     'Bunt_Flag', 'Foul_Flag', 'Hit_Location', 'Num_Errors', 'Batter_Dest', 'Play_on_Batter', 'New_Game_Flag', 
                                     'End_Game_Flag'], event_query_dict, "Event_Instance")
+
+    def insert_error_information(self, error_player_pos, error_type, event_id, error_position):
+
+        # Function Description: The function inserts content into the Error Information table.
+        # Function Parameters: error_player_pos (The positional number of the player who made the error (i.e. 1-9)), 
+        #    error_type (The type of error that was made), event_id (The id of the event), 
+        #    error_position (The position in the event the error was incurred. (1st, 2nd, or 3rd)) 
+        # Function Throws: Nothing
+        # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
+        
+        query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
+        return self.__execute_query(query)

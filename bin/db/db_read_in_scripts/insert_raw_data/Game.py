@@ -2,7 +2,6 @@
 
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
 from warnings import filterwarnings                         # Handle warnings from mysql.
-import pymysql.cursors
 
 class Game_Driver:
 
