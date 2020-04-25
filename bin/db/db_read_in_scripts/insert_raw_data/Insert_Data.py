@@ -65,6 +65,23 @@ class Insert_Driver():
             return new_string
         return None                                          # Return none when the list is null.
 
+    def __duel_in_event_insertion_res(self, player_driver, event_query_dict, db_connection):
+
+        # Function Description: The function inserts the required information into the Res_Batter and Res_Pitcher tables.
+        # Function Parameters: player_driver (The reference to a player driver obeck to insert the player information.)
+        #     event_query_dict (The event query dictionary to store the results.), 
+        #     db_connection (The current open connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
+        # Function Returns: Nothing
+
+        event_driver = Event_Driver(db_connection)
+        check_insertion = event_driver.insert_player_from_event(['Res_Batter_Name', 'Res_Batter_Hand', 'idEvent'], 
+                                                                player_driver, event_query_dict, 'Res_Batter_Information', 'Res_Batter_Name')
+        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Res Batter Information table was unsuccessful.")
+        check_insertion = event_driver.insert_player_from_event(['Res_Pitcher_Name', 'Res_Pitcher_Hand', 'idEvent'], 
+                                                                player_driver, event_query_dict, 'Res_Pitcher_Information', 'Res_Pitcher_Name')
+        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Res Pitcher Information table was unsuccessful.")
+
     def __duel_in_event_insertion(self, player_driver, event_query_dict, db_connection):
 
         # Function Description: The function will insert the contents into the Pitcher_In_Event and the Batter_In_Event table.
@@ -172,7 +189,8 @@ def clear_tables():     # Temporary Function to Delete Files
     cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
     cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
     cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
-    cursor.execute('DELETE From res_batter_information')
+    cursor.execute('DELETE From res_batter_information')    # Res_Batter_Information (3 / 3)
+    cursor.execute('DELETE From res_pitcher_information')   # Res_Pitcher_Information (3 / 3)
     db_connection.commit()
     cursor.close() 
 
