@@ -41,7 +41,7 @@ class Event_Query_Dict:
         splitString = splitString.split(',')
         if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
         eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
-        eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event 
+        eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event, Pitcher_In_Event 
         eventDict['Game_ID'] = splitString[0]                      # Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
@@ -49,15 +49,15 @@ class Event_Query_Dict:
         eventDict['Outs'] = splitString[4]                         # Table Name: Event_Instance
         eventDict['Balls'] = splitString[5]                        # Table Name: Batter_In_Event  
         eventDict['Strikes'] = splitString[6]                      # Table Name: Batter_In_Event  
-        eventDict['Pitch_Sequence'] = splitString[7]               
+        eventDict['Pitch_Sequence'] = splitString[7]               # Table Name: Pitcher_In_Event
         eventDict['Vis_Score'] = splitString[8]                    # Table Name: Event_Instance
         eventDict['Home_Score'] = splitString[9]                   # Table Name: Event_Instance
         eventDict['Batter_Name'] = splitString[10]                 # Table Name: Batter_In_Event 
         eventDict['Batter_Hand'] = splitString[11]                 # Table Name: Batter_In_Event 
         eventDict['Res_Batter_Name'] = splitString[12]
         eventDict['Res_Batter_Hand'] = splitString[13]
-        eventDict['Pitcher_Name'] = splitString[14]                
-        eventDict['Pitcher_Hand'] = splitString[15]                
+        eventDict['Pitcher_Name'] = splitString[14]                # Table Name: Pitcher_In_Event  
+        eventDict['Pitcher_Hand'] = splitString[15]                # Table Name: Pitcher_In_Event
         eventDict['Res_Pitcher_Name'] = splitString[16]
         eventDict['Res_Pitcher_Hand'] = splitString[17]
         eventDict['Catcher'] = splitString[18]

@@ -78,10 +78,10 @@ class Insert_Driver():
         check_insertion = event_driver.insert_player_from_event(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
                                                                 'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
                                                                 player_driver, event_query_dict, 'Batter_In_Event', 'Batter_Name')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The query into the Batter_In_Event Table was unsucessful.")
-        check_insertion = event_driver.insert_player_from_event(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
-                                                                'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
-                                                                player_driver, event_query_dict, 'Batter_In_Event', 'Batter_Name')
+        if not check_insertion: raise UnrecognisableMySQLBehaviour("The query into the Batter_In_Event Table was unsuccessful.")
+        check_insertion = event_driver.insert_player_from_event(['Pitcher_Name', 'idEvent', 'Pitcher_Hand', 'Pitch_Sequence'], 
+                                                                player_driver, event_query_dict, 'Pitcher_In_Event', 'Pitcher_Name')
+        if not check_insertion: raise UnrecognisableMySQLBehaviour("The query into the Pitcher_In_Event was unsuccessful.")
 
     def __error_information_insertion(self, event_query_dict, db_connection):
 
@@ -170,6 +170,7 @@ def clear_tables():     # Temporary Function to Delete Files
     cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
     cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
     cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
+    cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
     db_connection.commit()
     cursor.close() 
 
