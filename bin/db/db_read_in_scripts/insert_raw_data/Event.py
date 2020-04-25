@@ -209,4 +209,8 @@ class Event_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: True or False (The function throws True when the query was successful in its insertion. Otherwise, the function will be False.)
         
+<<<<<<< HEAD
         pass ### BUILD 
+=======
+        pass ### BUILD MEEEE Im really not sure
+>>>>>>> player_event_insertion
