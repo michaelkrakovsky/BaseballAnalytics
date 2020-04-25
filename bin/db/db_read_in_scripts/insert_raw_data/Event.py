@@ -3,9 +3,9 @@
 # Author: Michael Krakovsky
 # Version: 1.0
 
-from warnings import filterwarnings                         # Handle warnings from mysql.
 from hashlib import sha224
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
+from Driver import Driver
 from Player import Player_Driver
 from Game import Game_Driver
 from pyperclip import copy
@@ -141,77 +141,40 @@ class Event_Query_Dict:
         eventDict['Fielder_With_Fifth_Assist'] = splitString[95]                         
         return eventDict
 
-class Event_Driver:
+class Event_Driver(Driver):
 
     def __init__(self, db_connection):
         
-        # Function Description: Intialise the Event_Driver. The Event_Driver will handle all the function related to insert an Event:
-        #       1. Insert a new instance of an Event.
-        # Function Paramters: db_connection (pymysql.connections.Connection: The connection to the database.), 
-        # Function Throws: ValueError (Within multiple functions to check types.)
-        # Function Returns: None
+        # Function Description: Intialise the Event_Driver. Inherits from Driver.
+        # Function Parameters: db_connection (pymysql.connections.Connection: The connection to the database.)  
+        # Function Throws: Nothing
+        # Function Returns: Nothing
 
-        if (str(type(db_connection)) == '<class \'pymysql.connections.Connection\'>'):
-            self.__dbConnect__ = db_connection
-        else:
-            raise ValueError("ERROR: || Class -> Event_Driver || Function -> __init__ || Reason -> Connection parameter is invalid.")
-    
-    def __build_query_string(self, column_names, event_dict, table_name):
+        Driver.__init__(self, db_connection)                            # Send the parameters up.
+
+    def insert_event_dynamic(self, column_names, event_query_dict, table_name):
 
         # Function Description: Build Insert statements based on the names and values given.
-        # Parameters: self (The instance of the object), column_names (The names to insert), 
-        # event_dict (The values of the event in a dictionary), table_name (The name of the table) 
-        # Throws: None
-        # Returns: query (The query string)
+        #    Once the query is built, execute it!
+        # Function Parameters: column_names (The names of the columns to insert into the database.), 
+        #     event_query_dict (The dictionary that contains all the values that will be inserted into the database.), 
+        #     table_name (The name of the table that will recieve the new content.) 
+        # Function Throws: Nothing
+        # Function Returns: True or False (True will be turned if there are no warnings or errors. False will be returned otherwise.)
 
         query = "INSERT IGNORE INTO " + table_name + " ("
         second_query_half = ") Values ("
         for i in column_names:
             query += i + ", "                                 # Add the column names.  
             try:
-                val = int(event_dict[i])
+                val = int(event_query_dict[i])
                 second_query_half += str(val) + " , "
             except ValueError:                                # Must be a string, insert as a string.
-                second_query_half += "\'" + event_dict[i] + "\' , "
+                second_query_half += "\'" + event_query_dict[i] + "\' , "
         query = query[:-2]                                    # Remove the ending of the string (The comma and space)
         second_query_half = second_query_half[:-3]
         query += second_query_half + ");"
-        return query
-
-    def __execute_query(self, query):
-
-        # Function Description: Execute a query regardless of what it is and track its result.
-        # Function Parameters: query (The query that will be executed into the database.)
-        # Function Throws: UnrecognisableMySQLBehaviour (The exception is thrown when an unrecongniable warning is retrieved from the query execution.)
-        # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
-
-        cursor = self.__dbConnect__.cursor() 
-        filterwarnings('error')                                     # Convert warnings into exceptions to be caught.                   
-        try:
-            copy(query)
-            status = cursor.execute(query)                          # Execute Query: And close the cursor.
-            self.__dbConnect__.commit()    
-        except Warning as warn:
-            warn = str(warn)                                        # Ensure the warning is a duplicate entry warning to avoid data problems     
-            warnNum = warn[1:5]                         
-            if (warnNum != "1062"):                                 # An SQL Warning returning (1062, "Duplicate entry" ----- for key Primary)
-                raise UnrecognisableMySQLBehaviour("This was not a duplicate entry warning. Here was the error from the query: {}.".format(warn))
-            status = 0
-        filterwarnings('always')                                    # Turn the filter for warnings back on.
-        cursor.close()
-        if (status == 1): return True
-        return False
-
-    def insert_event_dynamic(self, column_names, event_dict, table_name):
-
-        # Function Description: Different types of query depending on the Column Names and Column Values. 
-        # Function Parameters: column_names (The names to insert), event_dict (The values of the event in a dictionary)
-        #   table_name (The name of the table) 
-        # Function Throws: None
-        # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
-
-        query = self.__build_query_string(column_names, event_dict, table_name)
-        return self.__execute_query(query)
+        return self.execute_query(query)       
 
     def insert_event_instance(self, event_query_dict):
 
