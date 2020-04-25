@@ -137,11 +137,12 @@ class Insert_Driver():
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        event_query_dict = Event_Query_Dict(file_line)                                                   # Structure the data from the file line.
-        self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)                    # Propogate into game table. 
-        self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)                # Propogate into the event instance table.
-        self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)             # Propogate into the error information table.
-        self.__duel_in_event_insertion(player_driver, event_query_dict.event_query_dict, db_connection)   #TEST ME
+        event_query_dict = Event_Query_Dict(file_line)                                                          # Structure the data from the file line.
+        self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)                           # Propogate into game table. 
+        self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)                       # Propogate into the event instance table.
+        self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)                    # Propogate into the error information table.
+        self.__duel_in_event_insertion(player_driver, event_query_dict.event_query_dict, db_connection)         # Propogate into the Batter and Pitcher In Event table.
+        self.__duel_in_event_insertion_res(player_driver, event_query_dict.event_query_dict, db_connection)
 
     def process_event_files(self):
 
@@ -171,6 +172,7 @@ def clear_tables():     # Temporary Function to Delete Files
     cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
     cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
     cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
+    cursor.execute('DELETE From res_batter_information')
     db_connection.commit()
     cursor.close() 
 
