@@ -194,10 +194,10 @@ class Event_Driver:
         except Warning as warn:
             warn = str(warn)                                        # Ensure the warning is a duplicate entry warning to avoid data problems     
             warnNum = warn[1:5]                         
-            if (warnNum != "1062"):                 # An SQL Warning returning (1062, "Duplicate entry" ----- for key Primary)
-                raise UnrecognisableMySQLBehaviour("ERROR: || Class -> Game_Driver || Function -> __insertQuery || Reason -> The warning was not the expected 'Duplicate Entry'. Please investigate to avoid data entry discrepancies.")
+            if (warnNum != "1062"):                                 # An SQL Warning returning (1062, "Duplicate entry" ----- for key Primary)
+                raise UnrecognisableMySQLBehaviour("This was not a duplicate entry warning. Here was the error from the query: {}.".format(warn))
             status = 0
-        filterwarnings('always')                        # Turn the filter for warnings back on.
+        filterwarnings('always')                                    # Turn the filter for warnings back on.
         cursor.close()
         if (status == 1): return True
         return False
@@ -237,3 +237,8 @@ class Event_Driver:
         
         query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
         return self.__execute_query(query)
+
+    def insert_batter_in_event(self, event_query_dict):
+
+        # Function Description: The function will insert all the required contents into the 'Batter_In_Event' table.
+        pass

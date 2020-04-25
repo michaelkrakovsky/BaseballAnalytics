@@ -73,7 +73,7 @@ class Insert_Driver():
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
         # Function Returns: Nothing
 
-        event_driver = Event_Driver(db_connection) 
+        event_driver = Event_Driver(db_connection)
 
     def __batter_in_event_insertion(self, event_query_dict, db_connection):
 
@@ -176,6 +176,7 @@ def clear_tables():     # Temporary Function to Delete Files
     cursor.execute('DELETE From game_day;')                 # Game_Day (5)
     cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
     cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
+    cursor.execute('DELETE From batter_in_event')
     db_connection.commit()
     cursor.close() 
 
