@@ -75,7 +75,7 @@ class Insert_Driver():
         # Function Returns: Nothing
 
         event_driver = Event_Driver(db_connection)
-        check_insertion = event_driver.insert_player_from_event(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
+        check_insertion = event_driver.insert_player_from_event(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand',
                                                                 'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
                                                                 player_driver, event_query_dict, 'Batter_In_Event', 'Batter_Name')
         if not check_insertion: raise UnrecognisableMySQLBehaviour("The query into the Batter_In_Event Table was unsucessful.")
