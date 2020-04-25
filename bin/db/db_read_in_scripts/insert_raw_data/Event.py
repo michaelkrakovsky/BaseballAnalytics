@@ -4,11 +4,9 @@
 # Version: 1.0
 
 from hashlib import sha224
-from Driver_Exceptions import UnrecognisableMySQLBehaviour
 from Driver import Driver
 from Player import Player_Driver
 from Game import Game_Driver
-from pyperclip import copy
 
 class Event_Query_Dict:
 
@@ -199,9 +197,9 @@ class Event_Driver(Driver):
         # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
         
         query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
-        return self.__execute_query(query)
+        return self.execute_query(query)
 
     def insert_batter_in_event(self, event_query_dict):
 
         # Function Description: The function will insert all the required contents into the 'Batter_In_Event' table.
-        pass
+        pass ### BUILD MEEEE
