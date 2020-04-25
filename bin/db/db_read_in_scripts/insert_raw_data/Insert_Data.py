@@ -65,19 +65,23 @@ class Insert_Driver():
             return new_string
         return None                                          # Return none when the list is null.
 
-    def __pitcher_in_event_insertion(self, event_query_dict, db_connection):
+    def __duel_in_event_insertion(self, player_driver, event_query_dict, db_connection):
 
         # Function Description: The function will insert the contents into the Pitcher_In_Event and the Batter_In_Event table.
-        # Function Parameters: event_query_dict (The event query dictionary to store the results.), 
+        # Function Parameters: player_driver (The reference to a player driver obeck to insert the player information.)
+        #     event_query_dict (The event query dictionary to store the results.), 
         #     db_connection (The current open connection to the database.)
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
         # Function Returns: Nothing
 
         event_driver = Event_Driver(db_connection)
-        check_insertion = event_driver.insert_event_dynamic(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
-                                                        'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
-                                                        event_query_dict, 'Batter_In_Event')
+        check_insertion = event_driver.insert_player_from_event(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
+                                                                'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
+                                                                player_driver, event_query_dict, 'Batter_In_Event', 'Batter_Name')
         if not check_insertion: raise UnrecognisableMySQLBehaviour("The query into the Batter_In_Event Table was unsucessful.")
+        check_insertion = event_driver.insert_player_from_event(['Batter_Name', 'idEvent', 'Batting_Team', 'Balls', 'Strikes', 'Batter_Hand', 
+                                                                'Leadoff_Flag', 'Pinch_Hit_Flag', 'Defensive_Position', 'Lineup_Position'], 
+                                                                player_driver, event_query_dict, 'Batter_In_Event', 'Batter_Name')
 
     def __error_information_insertion(self, event_query_dict, db_connection):
 
@@ -133,11 +137,11 @@ class Insert_Driver():
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        event_query_dict = Event_Query_Dict(file_line)                                        # Structure the data from the file line.
-        self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)         # Propogate into game table. 
-        self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)     # Propogate into the event instance table.
-        self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)  # Propogate into the error information table.
-        #self.__batter_in_event_insertion(event_query_dict.event_query_dict, db_connection)   #TEST ME
+        event_query_dict = Event_Query_Dict(file_line)                                                   # Structure the data from the file line.
+        self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)                    # Propogate into game table. 
+        self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)                # Propogate into the event instance table.
+        self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)             # Propogate into the error information table.
+        self.__duel_in_event_insertion(player_driver, event_query_dict.event_query_dict, db_connection)   #TEST ME
 
     def process_event_files(self):
 
@@ -165,7 +169,7 @@ def clear_tables():     # Temporary Function to Delete Files
     cursor.execute('DELETE From game_day;')                 # Game_Day (5)
     cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
     cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
-    cursor.execute('DELETE From batter_in_event')
+    cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
     db_connection.commit()
     cursor.close() 
 
