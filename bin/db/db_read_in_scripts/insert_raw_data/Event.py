@@ -7,6 +7,7 @@ from hashlib import sha224
 from Driver import Driver
 from Player import Player_Driver
 from Game import Game_Driver
+from Driver_Exceptions import UnrecognisableMySQLBehaviour
 
 class Event_Query_Dict:
 
@@ -40,19 +41,19 @@ class Event_Query_Dict:
         splitString = splitString.split(',')
         if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
         eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
-        eventDict['idEvent'] = self.__createHash(full_event_line)  # Map each key to the correct value within the query. Table Name: Event_Instance, Error_Information
+        eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event 
         eventDict['Game_ID'] = splitString[0]                      # Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
-        eventDict['Batting_Team'] = splitString[3]                 
+        eventDict['Batting_Team'] = splitString[3]                 # Table Name: Batter_In_Event    
         eventDict['Outs'] = splitString[4]                         # Table Name: Event_Instance
-        eventDict['Balls'] = splitString[5]                        
-        eventDict['Strikes'] = splitString[6]                       
+        eventDict['Balls'] = splitString[5]                        # Table Name: Batter_In_Event  
+        eventDict['Strikes'] = splitString[6]                      # Table Name: Batter_In_Event  
         eventDict['Pitch_Sequence'] = splitString[7]               
         eventDict['Vis_Score'] = splitString[8]                    # Table Name: Event_Instance
         eventDict['Home_Score'] = splitString[9]                   # Table Name: Event_Instance
-        eventDict['Batter_Name'] = splitString[10]                 
-        eventDict['Batter_Hand'] = splitString[11]                 
+        eventDict['Batter_Name'] = splitString[10]                 # Table Name: Batter_In_Event 
+        eventDict['Batter_Hand'] = splitString[11]                 # Table Name: Batter_In_Event 
         eventDict['Res_Batter_Name'] = splitString[12]
         eventDict['Res_Batter_Hand'] = splitString[13]
         eventDict['Pitcher_Name'] = splitString[14]                
@@ -71,10 +72,10 @@ class Event_Query_Dict:
         eventDict['Second_Runner'] = splitString[27]
         eventDict['Third_Runner'] = splitString[28]
         eventDict['Event_Text'] = splitString[29]                  # Table Name: Event_Instance
-        eventDict['Leadoff_Flag'] = splitString[30]                
-        eventDict['Pinch_Hit_Flag'] = splitString[31]              
-        eventDict['Defensive_Position'] = splitString[32]          
-        eventDict['Lineup_Position'] = splitString[33]             
+        eventDict['Leadoff_Flag'] = splitString[30]                # Table Name: Batter_In_Event            
+        eventDict['Pinch_Hit_Flag'] = splitString[31]              # Table Name: Batter_In_Event     
+        eventDict['Defensive_Position'] = splitString[32]          # Table Name: Batter_In_Event    
+        eventDict['Lineup_Position'] = splitString[33]             # Table Name: Batter_In_Event 
         eventDict['Event_Type'] = splitString[34]                  # Table Name: Event_Instance
         eventDict['Batter_Event_Flag'] = splitString[35]           # Table Name: Event_Instance
         eventDict['AB_Flag'] = splitString[36]                     # Table Name: Event_Instance
@@ -199,14 +200,18 @@ class Event_Driver(Driver):
         query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
         return self.execute_query(query)
 
-    def insert_batter_in_event(self, column_names, event_query_dict, table_name):
+    def insert_player_from_event(self, column_names, player_driver, event_query_dict, table_name, column_of_player_name):
 
         # Function Description: The function will insert all the required contents into event tables that ALSO
         #     require the insertion of a Player ID.
-        # Function Parameters: column_names (The names of the columns to insert into the database.), 
+        # Function Parameters: player_driver (The reference to a player driver obeck to insert the player information.)
+        #     column_names (The names of the columns to insert into the database.), 
         #     event_query_dict (The dictionary that contains all the values that will be inserted into the database.), 
-        #     table_name (The name of the table that will recieve the new content.)
+        #     table_name (The name of the table that will recieve the new content.), 
+        #     column_of_player_name (The name of the key within the event query dictionary that requires insertion into the player database.)
         # Function Throws: Nothing
         # Function Returns: True or False (The function throws True when the query was successful in its insertion. Otherwise, the function will be False.)
         
-        pass ### BUILD MEEEE Im really not sure
+        player_check = player_driver.check_and_insert_player(event_query_dict[column_of_player_name])
+        if not player_check: raise UnrecognisableMySQLBehaviour("The player was not properly inserted or found in the Player Information table.")
+        return self.insert_event_dynamic(column_names, event_query_dict, table_name)
