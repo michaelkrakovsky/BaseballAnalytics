@@ -199,7 +199,7 @@ class Event_Driver(Driver):
         query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
         return self.execute_query(query)
 
-    def insert_batter_in_event(self, column_names, event_query_dict, table_name):
+    def insert_player_with_event(self, column_names, event_query_dict, table_name):
 
         # Function Description: The function will insert all the required contents into event tables that ALSO
         #     require the insertion of a Player ID.
@@ -209,8 +209,4 @@ class Event_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: True or False (The function throws True when the query was successful in its insertion. Otherwise, the function will be False.)
         
-<<<<<<< HEAD
-        pass ### BUILD 
-=======
         pass ### BUILD MEEEE Im really not sure
->>>>>>> player_event_insertion
