@@ -67,20 +67,10 @@ class Insert_Driver():
 
     def __pitcher_in_event_insertion(self, event_query_dict, db_connection):
 
-        # Function Description: The function will insert the contents into the Pitcher_In_Event table.
+        # Function Description: The function will insert the contents into the Pitcher_In_Event and the Batter_In_Event table.
         # Function Parameters: event_query_dict (The event query dictionary to store the results.), 
         #     db_connection (The current open connection to the database.)
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
-        # Function Returns: Nothing
-
-        event_driver = Event_Driver(db_connection)
-
-    def __batter_in_event_insertion(self, event_query_dict, db_connection):
-
-        # Function Description: The function will insert all the proper contents into the Batter_In_Event table.
-        # Function Parameters: event_query_dict (The event query dictionary to store the results.), 
-        #     db_connection (The current open connection to the database.)
-        # Function Throws: UnrecognisableMySQLBehaviour (The exception is thrown when the query was unsuccessfully executed.)
         # Function Returns: Nothing
 
         event_driver = Event_Driver(db_connection)
@@ -119,11 +109,10 @@ class Insert_Driver():
         # Function Returns: Nothing
 
         game_driver = Game_Driver(db_connection)
-        check_game = game_driver.check_game(event_query_dict['Game_ID'])                                           # Ensure the game is inserted.
+        check_game = game_driver.check_game(event_query_dict['Game_ID'])                                            # Ensure the game is inserted.
         if check_game == False: 
             check_game = game_driver.insert_game(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])    # Insert the game if it is not found.
-        if check_game == False:
-            raise UnrecognisableMySQLBehaviour("Unable to insert the game into the table after the game was not found within the table.")
+        if check_game == False: raise UnrecognisableMySQLBehaviour("Unable to insert the game into the table after the game was not found within the table.")
 
     def __event_instance_insertion(self, event_query_dict, db_connection):
 
