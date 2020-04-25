@@ -16,9 +16,9 @@
 
 # --------------------------------------- Respective to Error Informational Positional ---------------------------------------- #
 #SET SQL_SAFE_UPDATES = 0;           # Set to unsfe know
-#select * from game_day;
-#DELETE From event_instance;
+select * from game_day;
 #DELETE From game_day;
 #select * from event_instance;
+#select * from player_information;
 
-RENAME TABLE 3rd_error_information_positional TO 3rd_Error_Player;
+#select * from batter_in_event

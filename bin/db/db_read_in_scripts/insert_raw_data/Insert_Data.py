@@ -148,7 +148,7 @@ class Insert_Driver():
         self.__game_table_insertion(event_query_dict.event_query_dict, db_connection)         # Propogate into game table. 
         self.__event_instance_insertion(event_query_dict.event_query_dict, db_connection)     # Propogate into the event instance table.
         self.__error_information_insertion(event_query_dict.event_query_dict, db_connection)  # Propogate into the error information table.
-        self.__batter_in_event_insertion(event_query_dict.event_query_dict, db_connection)   #TEST ME
+        #self.__batter_in_event_insertion(event_query_dict.event_query_dict, db_connection)   #TEST ME
 
     def process_event_files(self):
 

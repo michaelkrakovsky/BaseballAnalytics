@@ -1,9 +1,8 @@
 # The following utility will insert player information into the database. 
 
 from os import path
+from Driver import Driver
 from pickle import dump, load, HIGHEST_PROTOCOL
-from Driver_Exceptions import UnrecognisableMySQLBehaviour
-from warnings import filterwarnings                         # Handle warnings from mysql.
 
 class Player:
 
@@ -26,7 +25,7 @@ class Player:
             self.lastName = lName
             self.playerDebut = playerDebut
 
-class Player_Driver:
+class Player_Driver(Driver):
 
     def __init__(self, db_connection, path_to_raw_player_data, player_dict=None):
 
@@ -37,7 +36,7 @@ class Player_Driver:
         # Function Throws: FileNotFoundError (The error is thrown when the roster excel file or roster pickle file is not found.)
         # Function Returns: Nothing
 
-        self.__dbConnect__ = db_connection
+        Driver.__init__(self, db_connection)                                                      # The Driver parent will provide access to the db_connection.
         self.path_to_player_list = path_to_raw_player_data / 'player_data.csv'
         self.path_to_pickle_player_list = path_to_raw_player_data / 'pickle_player_data.pickle'
         if player_dict != None:                                                                   # Discover where to get the player list contents. From the pickle file, excel file or parameters.
@@ -125,7 +124,7 @@ class Player_Driver:
         # Function Returns: True or False (If the player is found, return True. Elsewise, return False.)
 
         query = 'select player_id from player_information where player_id = \'' + player_Id + '\';'
-        return bool(self.__dbConnect__.cursor().execute(query))
+        return bool(self.__db_connection__.cursor().execute(query))
 
     def insert_player(self, player_Id):
 
@@ -135,20 +134,7 @@ class Player_Driver:
         # Function Returns: True or False (True will be returned if the query was successfully executed. Elsewise, False will be returned.)
         
         if (player_Id in self.__player_list__):
-            cursor = self.__dbConnect__.cursor()
             query = self.__build_query(player_Id)           # Retrieve the query to insert into the database.                
-            filterwarnings('error')                         # Convert warnings into exceptions to be caught.                             
-            try:
-                status = cursor.execute(query)             # Execute Query: And close the cursor.
-                self.__dbConnect__.commit()    
-            except Warning as warn:
-                warn = str(warn)                            # Ensure the warning is a duplicate entry warning to avoid data problems     
-                warnNum = warn[1:5]                         
-                if (warnNum != "1062"):                     # 1062 is a warning that the ID already exists.
-                    raise UnrecognisableMySQLBehaviour("ERROR: || Class -> Player_Driver || Function -> checkAndInsert || Reason -> The warning was not the expected 'Duplicate Entry'. Please investigate to avoid data entry discrepancies.")
-                status = 0                                
-            filterwarnings('always')                        # Turn the filter for warnings back on.
-            cursor.close()
-        else:
-            raise ValueError("ERROR: || Class -> Player_Driver || Function -> checkAndInsert || Reason -> The Player ID does not exist in the CSV File.")
-        return bool(status)                                 # 1 For a Successful Query, 0 For an Unsuccessful
+            return self.execute_query(query)
+        raise ValueError("ERROR: || Class -> Player_Driver || Function -> checkAndInsert || Reason -> The Player ID does not exist in the CSV File.")
+        
