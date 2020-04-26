@@ -3,7 +3,6 @@
 from os import path
 from Driver import Driver
 from pickle import dump, load, HIGHEST_PROTOCOL
-from pyperclip import copy
 
 class Player:
 
@@ -137,6 +136,5 @@ class Player_Driver(Driver):
         if (player_Id in self.__player_list__):
             query = self.__build_query(player_Id)           # Retrieve the query to insert into the database.                
             return self.execute_query(query)
-        copy(player_Id)
         raise ValueError("ERROR: || Class -> Player_Driver || Function -> checkAndInsert || Reason -> The Player ID does not exist in the CSV File.")
         
