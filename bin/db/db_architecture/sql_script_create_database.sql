@@ -390,6 +390,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Fielder_Assist_Information` (
   `idEvent` VARCHAR(60) NOT NULL,
   `Fielder_Number` INT NOT NULL,
+  `Assist_Number` INT NOT NULL,
   PRIMARY KEY (`idEvent`),
   CONSTRAINT `Fielder_Assist`
     FOREIGN KEY (`idEvent`)
@@ -613,6 +614,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Fielder_Putout_Information` (
   `idEvent` VARCHAR(60) NOT NULL,
   `Fielder_Number` INT NOT NULL,
+  `Putout_Number` INT NOT NULL,
   PRIMARY KEY (`idEvent`),
   CONSTRAINT `Fielder_Assist0`
     FOREIGN KEY (`idEvent`)

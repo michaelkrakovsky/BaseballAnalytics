@@ -42,7 +42,7 @@ class Event_Query_Dict:
         if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
         eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
         eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event (W\ Res), Pitcher_In_Event (W\ Res), All Positional Tables 
-        eventDict['Game_ID'] = splitString[0]                      # All Resp Tables, All Base Runners, Table Name: Event_Instance, Game_Day
+        eventDict['Game_ID'] = splitString[0]                      # All Resp Tables, All Base Runners, All Pinch Runners and Hitters Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
         eventDict['Batting_Team'] = splitString[3]                 # Table Name: Batter_In_Event    
@@ -125,11 +125,11 @@ class Event_Query_Dict:
         eventDict['Pinch_Runner_On_1st'] = splitString[80]                           # Table Name: runner_on_first_details
         eventDict['Pinch_Runner_On_2nd'] = splitString[81]                           # Table Name: runner_on_second_details
         eventDict['Pinch_Runner_On_3rd'] = splitString[82]                           # Table Name: runner_on_third_details
-        eventDict['Runner_Removed_For_Pinch-Runner_On_1st'] = splitString[83]
-        eventDict['Runner_Removed_For_Pinch-Runner_On_2nd'] = splitString[84]
-        eventDict['Runner_Removed_For_Pinch-Runner_On_3rd'] = splitString[85]
-        eventDict['Batter_Removed_For_Pinch_Hitter'] = splitString[86]
-        eventDict['Position_of_Batter_removed_for_Pinch_Hitter'] = splitString[87]       
+        eventDict['Runner_Removed_For_Pinch-Runner_On_1st'] = splitString[83]        # Table Name: pinch_runner_removed_1st
+        eventDict['Runner_Removed_For_Pinch-Runner_On_2nd'] = splitString[84]        # Table Name: pinch_runner_removed_2nd
+        eventDict['Runner_Removed_For_Pinch-Runner_On_3rd'] = splitString[85]        # Table Name: pinch_runner_removed_3rd
+        eventDict['Batter_Removed_For_Pinch_Hitter'] = splitString[86]               # Table Name: position_of_batter_for_pinch_hitter
+        eventDict['Position_of_Batter_removed_for_Pinch_Hitter'] = splitString[87]   # Table Name: position_of_batter_for_pinch_hitter   
         eventDict['Fielder_With_First_Putout'] = splitString[88]                     
         eventDict['Fielder_With_Second_Putout'] = splitString[89]                    
         eventDict['Fielder_With_Third_Putout'] = splitString[90]                         

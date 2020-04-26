@@ -80,18 +80,18 @@ class Insert_Driver():
             check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_1st', 'idEvent'], player_driver, 
                                                                     event_query_dict, 'Pinch_Runner_Removed_1st', 'Runner_Removed_For_Pinch-Runner_On_1st')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_1st table was unsuccessful.")
-        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_1st'] == '':
-        check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_2nd', 'idEvent'], player_driver, 
+        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_2nd'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_2nd', 'idEvent'], player_driver, 
                                                                 event_query_dict, 'Pinch_Runner_Removed_2nd', 'Runner_Removed_For_Pinch-Runner_On_2nd')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_2nd table was unsuccessful.")
-        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_1st'] == '':
-        check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_3rd', 'idEvent'], player_driver, 
+        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_3rd'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_3rd', 'idEvent'], player_driver, 
                                                                 event_query_dict, 'Pinch_Runner_Removed_3rd', 'Runner_Removed_For_Pinch-Runner_On_3rd')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_3rd table was unsuccessful.")
-        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_1st'] == '':                                                             
-            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_1st', 'idEvent'], player_driver, 
-                                                                event_query_dict, 'Pinch_Runner_Removed_1st', 'Runner_Removed_For_Pinch-Runner_On_1st')
-            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_1st table was unsuccessful.")
+        if not event_query_dict['Batter_Removed_For_Pinch_Hitter'] == '':                                                             
+            check_insertion = event_driver.insert_player_from_event(['Batter_removed_For_Pinch_Hitter', 'Position_of_Batter_removed_for_Pinch_Hitter', 'idEvent'], 
+                                                                player_driver, event_query_dict, 'Batter_Removed_For_Pinch_Hitter', 'Batter_Removed_For_Pinch_Hitter')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Batter_Removed_For_Pinch_Hitter table was unsuccessful.")
             
     def __base_runner_insertion(self, player_driver, event_query_dict, event_driver, db_connection):
 
@@ -257,14 +257,15 @@ class Insert_Driver():
 
         event_query_dict = Event_Query_Dict(file_line)
         e_q_d = event_query_dict.event_query_dict
-        event_driver = Event_Driver(db_connection)                                                                            # Structure the data from the file line.
+        event_driver = Event_Driver(db_connection)                                                # Structure the data from the file line.
         self.__game_table_insertion(e_q_d, db_connection)                                         # Propogate into game table. 
         self.__event_instance_insertion(e_q_d, event_driver, db_connection)                       # Propogate into the event instance table.
         self.__error_information_insertion(e_q_d, event_driver, db_connection)                    # Propogate into the error information table.
         self.__duel_in_event_insertion(player_driver, e_q_d, event_driver, db_connection)         # Propogate into the Batter and Pitcher tables.
         self.__duel_in_event_insertion_res(player_driver, e_q_d, event_driver, db_connection)     # Propogate into the Res Batter and Pitcher tables.
         self.__position_player_insertion(player_driver, e_q_d, event_driver, db_connection)       # Propogate the Players who participated in the Event.
-        self.__base_runner_insertion(player_driver, e_q_d, event_driver, db_connection)
+        self.__base_runner_insertion(player_driver, e_q_d, event_driver, db_connection)           # Propogate the Players who were on the Base Paths.
+        self.__pinch_related_insertions(player_driver, e_q_d, event_driver, db_connection)        # Propogate the Players who were Pinch Runners & Hitters.
 
     def process_event_files(self):
 
@@ -286,7 +287,6 @@ class Insert_Driver():
                 self.__propogate_line_into_tables(file_line, player_driver, self.conn)
                 count += 1
                 if count > 10:
-                    print(file_line)
                     break  # STOP AT 10 LINE
             event_file.close()
         print("FIN")
@@ -309,17 +309,17 @@ def clear_tables():     # Temporary Function to Delete Table Content
     cursor.execute('DELETE From event_catcher')             # event_catcher (2 / 2)
     cursor.execute('DELETE From event_first_base')          # event_first_base (2 / 2)
     cursor.execute('DELETE From event_second_base')         # event_second_base (2 / 2)
-    cursor.execute('DELETE From event_third_base')                 # event_third_base (2 / 2)
-    cursor.execute('DELETE From Responsible_Pitcher_For_First')    # Responsible_Pitcher_For_First (2 / 2)
-    cursor.execute('DELETE From Responsible_Pitcher_For_Second')   # Responsible_Pitcher_For_Second (2 / 2)
-    cursor.execute('DELETE From Responsible_Pitcher_For_Third')    # Responsible_Pitcher_For_Third (2 / 2)
-    cursor.execute('DELETE From Runner_on_First_Details')          # runner_on_first_details (8 / 8)
-    cursor.execute('DELETE From Runner_on_Second_Details')         # runner_on_second_details (8 / 8)
-    cursor.execute('DELETE From Runner_on_Third_Details')          # runner_on_third_details (8 / 8)
-    cursor.execute('DELETE From pinch_runner_removed_1st')
-    cursor.execute('DELETE From pinch_runner_removed_2nd') 
-    cursor.execute('DELETE From pinch_runner_removed_3rd') 
-    cursor.execute('DELETE From batter_removed_for_pinch_hitter') 
+    cursor.execute('DELETE From event_third_base')                  # event_third_base (2 / 2)
+    cursor.execute('DELETE From Responsible_Pitcher_For_First')     # Responsible_Pitcher_For_First (2 / 2)
+    cursor.execute('DELETE From Responsible_Pitcher_For_Second')    # Responsible_Pitcher_For_Second (2 / 2)
+    cursor.execute('DELETE From Responsible_Pitcher_For_Third')     # Responsible_Pitcher_For_Third (2 / 2)
+    cursor.execute('DELETE From Runner_on_First_Details')           # runner_on_first_details (8 / 8)
+    cursor.execute('DELETE From Runner_on_Second_Details')          # runner_on_second_details (8 / 8)
+    cursor.execute('DELETE From Runner_on_Third_Details')           # runner_on_third_details (8 / 8)
+    cursor.execute('DELETE From pinch_runner_removed_1st')          # pinch_runner_removed_1st (2 / 2)
+    cursor.execute('DELETE From pinch_runner_removed_2nd')          # pinch_runner_removed_2nd (2 / 2)
+    cursor.execute('DELETE From pinch_runner_removed_3rd')          # pinch_runner_removed_3rd (2 / 2)
+    cursor.execute('DELETE From batter_removed_for_pinch_hitter')   # position_of_batter_for_pinch_hitter (3 / 3)
     db_connection.commit()
     cursor.close() 
 
