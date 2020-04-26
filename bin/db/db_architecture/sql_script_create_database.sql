@@ -391,12 +391,12 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Fielder_Assist_Information` (
   `idEvent` VARCHAR(60) NOT NULL,
   `Fielder_Number` INT NOT NULL,
   `Assist_Number` INT NOT NULL,
-  PRIMARY KEY (`idEvent`),
+  PRIMARY KEY (`idEvent`, `Assist_Number`),
   CONSTRAINT `Fielder_Assist`
     FOREIGN KEY (`idEvent`)
     REFERENCES `Baseball_Stats_DB`.`Event_Instance` (`idEvent`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -615,12 +615,12 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Fielder_Putout_Information` (
   `idEvent` VARCHAR(60) NOT NULL,
   `Fielder_Number` INT NOT NULL,
   `Putout_Number` INT NOT NULL,
-  PRIMARY KEY (`idEvent`),
+  PRIMARY KEY (`idEvent`, `Putout_Number`),
   CONSTRAINT `Fielder_Assist0`
     FOREIGN KEY (`idEvent`)
     REFERENCES `Baseball_Stats_DB`.`Event_Instance` (`idEvent`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 

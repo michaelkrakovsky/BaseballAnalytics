@@ -66,6 +66,54 @@ class Insert_Driver():
             return new_string
         return None                                          # Return none when the list is null.
 
+    def __assist_insertions(self, event_query_dict, event_driver, db_connection):
+
+        # Function Description: Insert the data into the Assist Tables. Data will only be
+        #    inserted if the data exists thus making its storage dynamic.
+        # Function Parameters: event_query_dict (The event dictionary organising the file line data.),
+        #    event_driver (The event driver that allows the insertion into an event related table.), 
+        #    db_connection (The existing connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
+        # Function Returns: Nothing
+
+        event_status = False                                                        # Anything other than 0 indicates that a Assist was incurred.
+        if int(event_query_dict['Fielder_With_First_Assist']) != 0:                 # Stop propogating if we get a zero.
+            event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_First_Assist'], 1, 'Fielder_Assist_Information')
+            if not event_status: raise UnrecognisableMySQLBehaviour("The First Assist was incorrectly inserted.")
+            if int(event_query_dict['Fielder_With_Second_Assist']) != 0:
+                event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Second_Assist'], 2, 'Fielder_Assist_Information')
+                if not event_status: raise UnrecognisableMySQLBehaviour("The Second Assist was incorrectly inserted.")
+                if int(event_query_dict['Fielder_With_Third_Assist']) != 0: 
+                    event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Third_Assist'], 3, 'Fielder_Assist_Information')
+                    if not event_status: raise UnrecognisableMySQLBehaviour("The Third Assist was incorrectly inserted.")
+                    if int(event_query_dict['Fielder_With_Fourth_Assist']) != 0: 
+                        event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Fourth_Assist'], 4, 'Fielder_Assist_Information')
+                        if not event_status: raise UnrecognisableMySQLBehaviour("The Fourth Assist was incorrectly inserted.")
+                        if int(event_query_dict['Fielder_With_Fifth_Assist']) != 0: 
+                            event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Fifth_Assist'], 5, 'Fielder_Assist_Information')
+                            if not event_status: raise UnrecognisableMySQLBehaviour("The Fifth Assist was incorrectly inserted.")
+
+    def __putout_insertions(self, event_query_dict, event_driver, db_connection):
+
+        # Function Description: Insert the data into the Putout Tables. Data will only be
+        #    inserted if the data exists thus making its storage dynamic.
+        # Function Parameters: event_query_dict (The event dictionary organising the file line data.),
+        #    event_driver (The event driver that allows the insertion into an event related table.), 
+        #    db_connection (The existing connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
+        # Function Returns: Nothing
+
+        event_status = False                                                        # Anything other than 0 indicates that a Putout was incurred.
+        if int(event_query_dict['Fielder_With_First_Putout']) != 0:                 # Stop propogating if we get a zero.
+            event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_First_Putout'], 1, 'Fielder_Putout_Information')
+            if not event_status: raise UnrecognisableMySQLBehaviour("The First Putout was incorrectly inserted.")
+            if int(event_query_dict['Fielder_With_Second_Putout']) != 0:
+                event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Second_Putout'], 2, 'Fielder_Putout_Information')
+                if not event_status: raise UnrecognisableMySQLBehaviour("The Second Putout was incorrectly inserted.")
+                if int(event_query_dict['Fielder_With_Third_Putout']) != 0: 
+                    event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Third_Putout'], 3, 'Fielder_Putout_Information')
+                    if not event_status: raise UnrecognisableMySQLBehaviour("The Third Putout was incorrectly inserted.")
+
     def __pinch_related_insertions(self, player_driver, event_query_dict, event_driver, db_connection):
 
         # Function Description: Insert the contents related to the pinch hitters and runners. (Resp Pitchers, Runners On)
@@ -266,6 +314,8 @@ class Insert_Driver():
         self.__position_player_insertion(player_driver, e_q_d, event_driver, db_connection)       # Propogate the Players who participated in the Event.
         self.__base_runner_insertion(player_driver, e_q_d, event_driver, db_connection)           # Propogate the Players who were on the Base Paths.
         self.__pinch_related_insertions(player_driver, e_q_d, event_driver, db_connection)        # Propogate the Players who were Pinch Runners & Hitters.
+        self.__putout_insertions(e_q_d, event_driver, db_connection)
+        self.__assist_insertions(e_q_d, event_driver, db_connection)
 
     def process_event_files(self):
 
@@ -320,6 +370,8 @@ def clear_tables():     # Temporary Function to Delete Table Content
     cursor.execute('DELETE From pinch_runner_removed_2nd')          # pinch_runner_removed_2nd (2 / 2)
     cursor.execute('DELETE From pinch_runner_removed_3rd')          # pinch_runner_removed_3rd (2 / 2)
     cursor.execute('DELETE From batter_removed_for_pinch_hitter')   # position_of_batter_for_pinch_hitter (3 / 3)
+    cursor.execute('DELETE From fielder_assist_information')
+    cursor.execute('DELETE From fielder_putout_information')
     db_connection.commit()
     cursor.close() 
 

@@ -200,6 +200,24 @@ class Event_Driver(Driver):
         query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
         return self.execute_query(query)
 
+    def insert_fielding_instance(self, event_id, fielder_pos, putout_number, table_name):
+
+        # Function Description: Insert Fielding Information from either a Putout or an Assist.
+        # Function Parameters: event_id (The event Id connected to the fielding information.), 
+        #     fielder_pos (The position of the fielder (1-9) who made the play.), 
+        #     putout_number (The putout number within the event (1-3).), 
+        #     table_name (The table to insert the content into. (Either assist or putout.))
+        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unsuccessful.)
+        # Function Returns: Nothing
+
+        if table_name == 'Fielder_Assist_Information':
+            query = "INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) VALUES ('{}', '{}', '{}')".format(event_id, fielder_pos, putout_number)
+        elif table_name == 'Fielder_Putout_Information':
+            query = "INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) VALUES ('{}', '{}', '{}')".format(event_id, fielder_pos, putout_number)
+        else:
+            raise ValueError("The table name entered into the table was incorrect.")
+        return self.execute_query(query)
+
     def insert_player_from_event(self, column_names, player_driver, event_query_dict, table_name, column_of_player_name):
 
         # Function Description: The function will insert all the required contents into event tables that ALSO
