@@ -42,7 +42,7 @@ class Event_Query_Dict:
         if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
         eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
         eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event (W\ Res), Pitcher_In_Event (W\ Res), All Positional Tables 
-        eventDict['Game_ID'] = splitString[0]                      # All Resp Tables, All Base Runners, All Pinch Runners and Hitters Table Name: Event_Instance, Game_Day
+        eventDict['Game_ID'] = splitString[0]                      # All Resp Tables, All Base Runners, All Pinch Runners and Hitters, Fielding Information Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
         eventDict['Batting_Team'] = splitString[3]                 # Table Name: Batter_In_Event    
@@ -130,14 +130,14 @@ class Event_Query_Dict:
         eventDict['Runner_Removed_For_Pinch-Runner_On_3rd'] = splitString[85]        # Table Name: pinch_runner_removed_3rd
         eventDict['Batter_Removed_For_Pinch_Hitter'] = splitString[86]               # Table Name: position_of_batter_for_pinch_hitter
         eventDict['Position_of_Batter_removed_for_Pinch_Hitter'] = splitString[87]   # Table Name: position_of_batter_for_pinch_hitter   
-        eventDict['Fielder_With_First_Putout'] = splitString[88]                     
-        eventDict['Fielder_With_Second_Putout'] = splitString[89]                    
-        eventDict['Fielder_With_Third_Putout'] = splitString[90]                         
-        eventDict['Fielder_With_First_Assist'] = splitString[91]                         
-        eventDict['Fielder_With_Second_Assist'] = splitString[92]                        
-        eventDict['Fielder_With_Third_Assist'] = splitString[93]                         
-        eventDict['Fielder_With_Fourth_Assist'] = splitString[94]                        
-        eventDict['Fielder_With_Fifth_Assist'] = splitString[95]                         
+        eventDict['Fielder_With_First_Putout'] = splitString[88]                     # Table Name: fielder_putout_information                 
+        eventDict['Fielder_With_Second_Putout'] = splitString[89]                    # Table Name: fielder_putout_information            
+        eventDict['Fielder_With_Third_Putout'] = splitString[90]                     # Table Name: fielder_putout_information      
+        eventDict['Fielder_With_First_Assist'] = splitString[91]                     # Table Name: fielder_assist_information    
+        eventDict['Fielder_With_Second_Assist'] = splitString[92]                    # Table Name: fielder_assist_information    
+        eventDict['Fielder_With_Third_Assist'] = splitString[93]                     # Table Name: fielder_assist_information    
+        eventDict['Fielder_With_Fourth_Assist'] = splitString[94]                    # Table Name: fielder_assist_information    
+        eventDict['Fielder_With_Fifth_Assist'] = splitString[95]                     # Table Name: fielder_assist_information    
         return eventDict
 
 class Event_Driver(Driver):

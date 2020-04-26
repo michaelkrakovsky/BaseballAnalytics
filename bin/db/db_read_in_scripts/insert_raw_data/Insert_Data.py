@@ -314,8 +314,8 @@ class Insert_Driver():
         self.__position_player_insertion(player_driver, e_q_d, event_driver, db_connection)       # Propogate the Players who participated in the Event.
         self.__base_runner_insertion(player_driver, e_q_d, event_driver, db_connection)           # Propogate the Players who were on the Base Paths.
         self.__pinch_related_insertions(player_driver, e_q_d, event_driver, db_connection)        # Propogate the Players who were Pinch Runners & Hitters.
-        self.__putout_insertions(e_q_d, event_driver, db_connection)
-        self.__assist_insertions(e_q_d, event_driver, db_connection)
+        self.__putout_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Putout Fielders in the Event.
+        self.__assist_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Assist Fielders in the Event.
 
     def process_event_files(self):
 
@@ -370,8 +370,8 @@ def clear_tables():     # Temporary Function to Delete Table Content
     cursor.execute('DELETE From pinch_runner_removed_2nd')          # pinch_runner_removed_2nd (2 / 2)
     cursor.execute('DELETE From pinch_runner_removed_3rd')          # pinch_runner_removed_3rd (2 / 2)
     cursor.execute('DELETE From batter_removed_for_pinch_hitter')   # position_of_batter_for_pinch_hitter (3 / 3)
-    cursor.execute('DELETE From fielder_assist_information')
-    cursor.execute('DELETE From fielder_putout_information')
+    cursor.execute('DELETE From fielder_assist_information')        # fielder_assist_information (3 / 3)
+    cursor.execute('DELETE From fielder_putout_information')        # fielder_putout_information (3 / 3)
     db_connection.commit()
     cursor.close() 
 
