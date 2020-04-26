@@ -3,6 +3,7 @@
 from os import path
 from Driver import Driver
 from pickle import dump, load, HIGHEST_PROTOCOL
+from pyperclip import copy
 
 class Player:
 
@@ -67,13 +68,13 @@ class Player_Driver(Driver):
 
         with open(path_to_player_list) as f:                        
             f.readline()                                   # Throw away the first line, the title line.
-            playerDict = {}
+            player_dict = {}
             for line in f:
-                noNewLines = line.rstrip()
-                splitElements = noNewLines.split(',')
-                newPlayer = Player(splitElements[1], splitElements[0], splitElements[3])    # How the data is formatted in the CSV file.
-                playerDict[splitElements[2]] = newPlayer
-        return playerDict
+                no_new_lines = line.rstrip()
+                split_elements = no_new_lines.split(',')
+                new_player = Player(split_elements[2], split_elements[1], split_elements[3])    # How the data is formatted in the CSV file.
+                player_dict[split_elements[0]] = new_player
+        return player_dict
 
     def __process_player_file_contents(self, path_to_player_list, path_to_pickle_player_list):
 
@@ -136,5 +137,6 @@ class Player_Driver(Driver):
         if (player_Id in self.__player_list__):
             query = self.__build_query(player_Id)           # Retrieve the query to insert into the database.                
             return self.execute_query(query)
+        copy(player_Id)
         raise ValueError("ERROR: || Class -> Player_Driver || Function -> checkAndInsert || Reason -> The Player ID does not exist in the CSV File.")
         
