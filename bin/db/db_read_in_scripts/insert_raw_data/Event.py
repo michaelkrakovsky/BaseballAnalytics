@@ -42,7 +42,7 @@ class Event_Query_Dict:
         if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
         eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
         eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event (W\ Res), Pitcher_In_Event (W\ Res), All Positional Tables 
-        eventDict['Game_ID'] = splitString[0]                      # Table Name: Event_Instance, Game_Day
+        eventDict['Game_ID'] = splitString[0]                      # All Resp Tables, Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
         eventDict['Batting_Team'] = splitString[3]                 # Table Name: Batter_In_Event    
@@ -117,9 +117,9 @@ class Event_Query_Dict:
         eventDict['PO_For_Runner_On_1st_Flag'] = splitString[72]
         eventDict['PO_For_Runner_On_2nd_Flag'] = splitString[73]
         eventDict['PO_For_Runner_On_3rd_Flag'] = splitString[74]
-        eventDict['Responsible_Pitcher_For_Runner_On_1st'] = splitString[75]
-        eventDict['Responsible_Pitcher_For_Runner_On_2nd'] = splitString[76]
-        eventDict['Responsible_Pitcher_For_Runner_On_3rd'] = splitString[77]
+        eventDict['Responsible_Pitcher_For_Runner_On_1st'] = splitString[75]         # Table Name: Responsible_Pitcher_For_First
+        eventDict['Responsible_Pitcher_For_Runner_On_2nd'] = splitString[76]         # Table Name: Responsible_Pitcher_For_Second
+        eventDict['Responsible_Pitcher_For_Runner_On_3rd'] = splitString[77]         # Table Name: Responsible_Pitcher_For_Third
         eventDict['New_Game_Flag'] = splitString[78]                                 # Table Name: Event_Instance
         eventDict['End_Game_Flag'] = splitString[79]                                 # Table Name: Event_Instance
         eventDict['Pinch_Runner_On_1st'] = splitString[80]

@@ -258,8 +258,9 @@ class Insert_Driver():
             for file_line in event_file:                                # Processes each file line by line.
                 self.__propogate_line_into_tables(file_line, player_driver, self.conn)
                 count += 1
-                if count > 20:
-                    break  # STOP AT 20 LINE
+                if count > 10:
+                    print(file_line)
+                    break  # STOP AT 10 LINE
             event_file.close()
         print("FIN")
 
@@ -274,15 +275,15 @@ def clear_tables():     # Temporary Function to Delete Table Content
     cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
     cursor.execute('DELETE From res_batter_information')    # Res_Batter_Information (3 / 3)
     cursor.execute('DELETE From res_pitcher_information')   # Res_Pitcher_Information (3 / 3)
-    cursor.execute('DELETE From event_shortstop')
-    cursor.execute('DELETE From event_right_field')
-    cursor.execute('DELETE From event_centre_field')
-    cursor.execute('DELETE From event_left_field')
-    cursor.execute('DELETE From event_catcher')
-    cursor.execute('DELETE From event_first_base')
-    cursor.execute('DELETE From event_second_base')
-    cursor.execute('DELETE From event_third_base')
-    cursor.execute('DELETE From Responsible_Pitcher_For_First')
+    cursor.execute('DELETE From event_shortstop')           # Event_Shortstop (2 / 2)
+    cursor.execute('DELETE From event_right_field')         # event_right_field (2 / 2)
+    cursor.execute('DELETE From event_centre_field')        # event_centre_field (2 / 2)
+    cursor.execute('DELETE From event_left_field')          # event_left_field (2 / 2)
+    cursor.execute('DELETE From event_catcher')             # event_catcher (2 / 2)
+    cursor.execute('DELETE From event_first_base')          # event_first_base (2 / 2)
+    cursor.execute('DELETE From event_second_base')         # event_second_base (2 / 2)
+    cursor.execute('DELETE From event_third_base')                 # event_third_base (2 / 2)
+    cursor.execute('DELETE From Responsible_Pitcher_For_First')    # Responsible_Pitcher_For_First (2 / 2)
     cursor.execute('DELETE From Responsible_Pitcher_For_Second')
     cursor.execute('DELETE From Responsible_Pitcher_For_Third')
     cursor.execute('DELETE From Runner_on_First_Details')
