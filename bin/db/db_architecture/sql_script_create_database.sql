@@ -420,13 +420,13 @@ ENGINE = InnoDB;
 -- Table `Baseball_Stats_DB`.`Batter_Removed_For_Pinch_Hitter`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Batter_Removed_For_Pinch_Hitter` (
-  `Runner_ID` VARCHAR(45) NOT NULL,
+  `Batter_Removed_For_Pinch_Hitter` VARCHAR(45) NOT NULL,
   `Event_ID` VARCHAR(60) NOT NULL,
   `Position_of_Batter_removed_for_Pinch_Hitter` INT NOT NULL,
-  PRIMARY KEY (`Runner_ID`, `Event_ID`),
+  PRIMARY KEY (`Batter_Removed_For_Pinch_Hitter`, `Event_ID`),
   INDEX `Event_ID_Pinch_1st_idx` (`Event_ID` ASC) VISIBLE,
   CONSTRAINT `Positional_Player_Pinch_2nd00`
-    FOREIGN KEY (`Runner_ID`)
+    FOREIGN KEY (`Batter_Removed_For_Pinch_Hitter`)
     REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
