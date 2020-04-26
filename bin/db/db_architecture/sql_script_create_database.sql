@@ -502,6 +502,11 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Responsible_Pitcher_For_First` (
     FOREIGN KEY (`idEvent`)
     REFERENCES `Baseball_Stats_DB`.`Event_Instance` (`idEvent`)
     ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `Responsible_Pitcher_One`
+    FOREIGN KEY (`Responsible_Pitcher_For_Runner_On_1st`)
+    REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
+    ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
@@ -518,6 +523,11 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Responsible_Pitcher_For_Second` 
     FOREIGN KEY (`idEvent`)
     REFERENCES `Baseball_Stats_DB`.`Event_Instance` (`idEvent`)
     ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `Resp_Pitcher_Two`
+    FOREIGN KEY (`Responsible_Pitcher_For_Runner_On_2nd`)
+    REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
+    ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
@@ -533,6 +543,11 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Responsible_Pitcher_For_Third` (
   CONSTRAINT `Runner_1st_Event000`
     FOREIGN KEY (`idEvent`)
     REFERENCES `Baseball_Stats_DB`.`Event_Instance` (`idEvent`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `Resp_Pitcher_Third`
+    FOREIGN KEY (`Responsible_Pitcher_For_Runner_On_3rd`)
+    REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;

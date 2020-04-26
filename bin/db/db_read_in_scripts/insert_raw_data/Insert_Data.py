@@ -14,11 +14,12 @@ from Driver_Exceptions import UnrecognisableMySQLBehaviour
 from Player import Player_Driver
 from Event import Event_Query_Dict, Event_Driver
 from Game import Game_Driver
+from pickle import load                               # Provide pickle capabilities
 import pymysql.cursors                                # To Connect to MySQL Database (PyMySQL)
 
 from warnings import filterwarnings                   # Handle warnings from mysql.
 
-from pickle import load                               # Provide pickle capabilities
+
 # from Game import Game_Driver
 # from Event import Event_Driver
 # from Player import Player_Driver
@@ -64,6 +65,44 @@ class Insert_Driver():
             new_string = new_string[:-1]                     # Remove comma and newline redundantly added.
             return new_string
         return None                                          # Return none when the list is null.
+
+    def __base_runner_insertion(self, player_driver, event_query_dict, event_driver, db_connection):
+
+        # Function Description: Insert the contents related to the base runners. (Resp Pitchers, Runners On)
+        # Function Parameters: player_driver (The reference to a player driver obeck to insert the player information.)
+        #     event_query_dict (The event query dictionary to store the results.),
+        #     event_driver (The event driver that allows the insertion into an event related table.)
+        #     db_connection (The current open connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was incorrectly inserted.)
+        # Function Returns: Nothing
+
+        if not event_query_dict['Responsible_Pitcher_For_Runner_On_1st'] == '':                                                             # Do not attempt an insertion if there is no player to insert.
+            check_insertion = event_driver.insert_player_from_event(['Responsible_Pitcher_For_Runner_On_1st', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Responsible_Pitcher_For_First', 'Responsible_Pitcher_For_Runner_On_1st')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Responsible_Pitcher_For_First table was unsuccessful.")
+        if not event_query_dict['Responsible_Pitcher_For_Runner_On_2nd'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Responsible_Pitcher_For_Runner_On_2nd', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Responsible_Pitcher_For_Second', 'Responsible_Pitcher_For_Runner_On_2nd')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Responsible_Pitcher_For_Second table was unsuccessful.")
+        if not event_query_dict['Responsible_Pitcher_For_Runner_On_3rd'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Responsible_Pitcher_For_Runner_On_3rd', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Responsible_Pitcher_For_Third', 'Responsible_Pitcher_For_Runner_On_3rd')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Responsible_Pitcher_For_Third table was unsuccessful.")
+        if not event_query_dict['First_Runner'] == '':
+            check_insertion = event_driver.insert_player_from_event(['First_Runner', 'Runner_On_1st_Dest', 'SB_Runner_On_1st_Flag', 'CS_Runner_On_1st_Flag',
+                                                                    'PO_For_Runner_On_1st_Flag', 'Play_On_Runner_On_1st', 'Pinch_Runner_On_1st', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Runner_on_First_Details', 'First_Runner')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Runner_on_First_Details table was unsuccessful.")
+        if not event_query_dict['Second_Runner'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Second_Runner', 'Runner_On_2nd_Dest', 'SB_Runner_On_2nd_Flag', 'CS_Runner_On_2nd_Flag',
+                                                                    'PO_For_Runner_On_2nd_Flag', 'Play_On_Runner_On_2nd', 'Pinch_Runner_On_2nd', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Runner_on_Second_Details', 'Second_Runner')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Runner_on_Second_Details table was unsuccessful.")
+        if not event_query_dict['Third_Runner'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Third_Runner', 'Runner_On_3rd_Dest', 'SB_Runner_On_3rd_Flag', 'CS_Runner_On_3rd_Flag',
+                                                                    'PO_For_Runner_On_3rd_Flag', 'Play_On_Runner_On_3rd', 'Pinch_Runner_On_3rd', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Runner_on_Third_Details', 'Third_Runner')
+            if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Runner_on_Third_Details table was unsuccessful.")
 
     def __position_player_insertion(self, player_driver, event_query_dict, event_driver, db_connection):
 
@@ -197,7 +236,8 @@ class Insert_Driver():
         self.__error_information_insertion(e_q_d, event_driver, db_connection)                    # Propogate into the error information table.
         self.__duel_in_event_insertion(player_driver, e_q_d, event_driver, db_connection)         # Propogate into the Batter and Pitcher tables.
         self.__duel_in_event_insertion_res(player_driver, e_q_d, event_driver, db_connection)     # Propogate into the Res Batter and Pitcher tables.
-        self.__position_player_insertion(player_driver, e_q_d, event_driver, db_connection)
+        self.__position_player_insertion(player_driver, e_q_d, event_driver, db_connection)       # Propogate the Players who participated in the Event.
+        self.__base_runner_insertion(player_driver, e_q_d, event_driver, db_connection)
 
     def process_event_files(self):
 
@@ -212,14 +252,18 @@ class Insert_Driver():
         with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
         player_driver = Player_Driver(self.conn, self.path_to_player_list, player_reference)                # Let us only create this once to avoid needless File I/O processing.
         for file_name in listdir(path_to_event_files):
+            count = 0    # TEMP: Delete Me
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
             for file_line in event_file:                                # Processes each file line by line.
                 self.__propogate_line_into_tables(file_line, player_driver, self.conn)
-                break  # STOP AT ONE LINE
+                count += 1
+                if count > 20:
+                    break  # STOP AT 20 LINE
             event_file.close()
+        print("FIN")
 
-def clear_tables():     # Temporary Function to Delete Files
+def clear_tables():     # Temporary Function to Delete Table Content
     db_connection = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
     cursor = db_connection.cursor()
     cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
@@ -238,6 +282,12 @@ def clear_tables():     # Temporary Function to Delete Files
     cursor.execute('DELETE From event_first_base')
     cursor.execute('DELETE From event_second_base')
     cursor.execute('DELETE From event_third_base')
+    cursor.execute('DELETE From Responsible_Pitcher_For_First')
+    cursor.execute('DELETE From Responsible_Pitcher_For_Second')
+    cursor.execute('DELETE From Responsible_Pitcher_For_Third')
+    cursor.execute('DELETE From Runner_on_First_Details')
+    cursor.execute('DELETE From Runner_on_Second_Details')
+    cursor.execute('DELETE From Runner_on_Third_Details')
     db_connection.commit()
     cursor.close() 
 
