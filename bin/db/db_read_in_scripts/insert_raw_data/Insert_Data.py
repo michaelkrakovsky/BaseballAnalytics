@@ -289,6 +289,10 @@ def clear_tables():     # Temporary Function to Delete Table Content
     cursor.execute('DELETE From Runner_on_First_Details')          # runner_on_first_details (8 / 8)
     cursor.execute('DELETE From Runner_on_Second_Details')         # runner_on_second_details (8 / 8)
     cursor.execute('DELETE From Runner_on_Third_Details')          # runner_on_third_details (8 / 8)
+    cursor.execute('DELETE From pinch_runner_removed_1st')
+    cursor.execute('DELETE From pinch_runner_removed_2nd') 
+    cursor.execute('DELETE From pinch_runner_removed_3rd') 
+    cursor.execute('DELETE From batter_removed_for_pinch_hitter') 
     db_connection.commit()
     cursor.close() 
 
