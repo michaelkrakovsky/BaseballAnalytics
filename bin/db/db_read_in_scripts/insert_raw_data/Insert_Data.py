@@ -11,60 +11,79 @@
 from pathlib import Path
 from os import listdir
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
+from Driver import Driver
 from Player import Player_Driver
 from Event import Event_Query_Dict, Event_Driver
 from Game import Game_Driver
 from pickle import load                               # Provide pickle capabilities
 import pymysql.cursors                                # To Connect to MySQL Database (PyMySQL)
+from time import strftime, gmtime
 
-from warnings import filterwarnings                   # Handle warnings from mysql.
+class Insert_Driver(Driver):
 
-
-# from Game import Game_Driver
-# from Event import Event_Driver
-# from Player import Player_Driver
-# from zipfile import ZipFile                         # Used to unzip event files
-# import pandas as pd                                 # Gain access to the pandas library
-# import pymysql.cursors
-# import pickle                                       # Gain access to pickling capabilities
-# import pyperclip                                    # Gain access to computer clipboard
-# import sys
-# import time                                         # Gain access to time capabilities
-
-class Insert_Driver():
-
-    def __init__(self):
+    def __init__(self, db_connection):
 
         # Class Description: The class will manage and control the data insertions into the baseball database. Note, 
         #   the class does not perform any queries. The queries are delegated to the specific drivers.
 
-        self.path_to_log_files = Path("BaseballAnalytics/logs/insert_file_logs/")                                               # The path to the log file.
-        self.path_to_raw_data = Path("BaseballAnalytics/bin/db/raw_data/")                                                      # The path to the raw data that will be inserted into the database.
-        self.path_to_player_list = self.path_to_raw_data / 'rosters'                                                            # The folder containing the player data.
-        self.path_to_pickle_player_data = self.path_to_player_list / 'pickle_player_data.pickle'                                # The path to the pickle file containing the player information.
-        self.conn = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
+        Driver.__init__(self, db_connection)                                                          # The path to the pymysql connector to access the database.
+        self.path_to_log_files = Path("BaseballAnalytics/logs/insert_file_logs/")                     # The path to the log file.
+        self.path_to_raw_data = Path("BaseballAnalytics/bin/db/raw_data/")                            # The path to the raw data that will be inserted into the database.
+        self.path_to_player_list = self.path_to_raw_data / 'rosters'                                  # The folder containing the player data.
+        self.path_to_pickle_player_data = self.path_to_player_list / 'pickle_player_data.pickle'      # The path to the pickle file containing the player information. 
+        self.log_folder = Path('BaseballAnalytics/logs/insert_file_logs/')                              # The path to the log file.
+        self.log_file = self.__initiate_log_file(self.log_folder)
 
-    def __remove_query_redunancies(self, string_name):
+    def __initiate_log_file(self, path_to_folder):
 
-        ### IS THIS NECESSARY ###
-        # Function Description: Take the line of data, remove unecessary data points, and return as a string
-        # Parameters: string_name (The string of data that requires manipulation)
-        # Throws: None
-        # Returns: new_string (The string with the proper changes)
+        # Function Description: The function will create the log file to store the failed queries from the event files.
+        # Function Parameters: path_to_folder (The path to the location of all the error files.)
+        # Function Throws: Nothing
+        # Function Returns: path_to_log_file (The path to the log file.)
 
-        string_name = string_name.rstrip()                   # Remove newline characters.
-        separated_data = string_name.split(',')              # Split the csv formatted data into an array.
-        if (separated_data != ['']):                         # Guard against the null character in the file.            
-            try:
-                separated_data.pop(1)                        # Remove the visiting team (Will be used in Game Table) 
-            except:
-                return string_name                           # Return what was inputted into in the string to be viewed in the error report.
-            new_string = ""
-            for i in separated_data:                         # Convert list back into a string to be inserted.
-                new_string = new_string + i + ','
-            new_string = new_string[:-1]                     # Remove comma and newline redundantly added.
-            return new_string
-        return None                                          # Return none when the list is null.
+        log_file_name = strftime("%Y-%m-%d_%H_%M_%S", gmtime()) + '.txt'
+        path_to_log_file = path_to_folder / log_file_name
+        with open(path_to_log_file.absolute(), 'w+') as f: f.write("Starting the file read... \n")
+        return path_to_log_file
+
+    def __empty_tables(self):
+
+        # Function Description: The function will empty the entire database of all data.
+        # Function Parameters: Nothing
+        # Function Throws: Nothing
+        # Function Returns: Nothing
+
+        cursor = self.__db_connection__.cursor()
+        cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
+        cursor.execute('DELETE From game_day;')                 # Game_Day (5)
+        cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
+        cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
+        cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
+        cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
+        cursor.execute('DELETE From res_batter_information')    # Res_Batter_Information (3 / 3)
+        cursor.execute('DELETE From res_pitcher_information')   # Res_Pitcher_Information (3 / 3)
+        cursor.execute('DELETE From event_shortstop')           # Event_Shortstop (2 / 2)
+        cursor.execute('DELETE From event_right_field')         # event_right_field (2 / 2)
+        cursor.execute('DELETE From event_centre_field')        # event_centre_field (2 / 2)
+        cursor.execute('DELETE From event_left_field')          # event_left_field (2 / 2)
+        cursor.execute('DELETE From event_catcher')             # event_catcher (2 / 2)
+        cursor.execute('DELETE From event_first_base')          # event_first_base (2 / 2)
+        cursor.execute('DELETE From event_second_base')         # event_second_base (2 / 2)
+        cursor.execute('DELETE From event_third_base')                  # event_third_base (2 / 2)
+        cursor.execute('DELETE From Responsible_Pitcher_For_First')     # Responsible_Pitcher_For_First (2 / 2)
+        cursor.execute('DELETE From Responsible_Pitcher_For_Second')    # Responsible_Pitcher_For_Second (2 / 2)
+        cursor.execute('DELETE From Responsible_Pitcher_For_Third')     # Responsible_Pitcher_For_Third (2 / 2)
+        cursor.execute('DELETE From Runner_on_First_Details')           # runner_on_first_details (8 / 8)
+        cursor.execute('DELETE From Runner_on_Second_Details')          # runner_on_second_details (8 / 8)
+        cursor.execute('DELETE From Runner_on_Third_Details')           # runner_on_third_details (8 / 8)
+        cursor.execute('DELETE From pinch_runner_removed_1st')          # pinch_runner_removed_1st (2 / 2)
+        cursor.execute('DELETE From pinch_runner_removed_2nd')          # pinch_runner_removed_2nd (2 / 2)
+        cursor.execute('DELETE From pinch_runner_removed_3rd')          # pinch_runner_removed_3rd (2 / 2)
+        cursor.execute('DELETE From batter_removed_for_pinch_hitter')   # position_of_batter_for_pinch_hitter (3 / 3)
+        cursor.execute('DELETE From fielder_assist_information')        # fielder_assist_information (3 / 3)
+        cursor.execute('DELETE From fielder_putout_information')        # fielder_putout_information (3 / 3)
+        self.__db_connection__.commit()
+        cursor.close() 
 
     def __assist_insertions(self, event_query_dict, event_driver, db_connection):
 
@@ -317,6 +336,25 @@ class Insert_Driver():
         self.__putout_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Putout Fielders in the Event.
         self.__assist_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Assist Fielders in the Event.
 
+    def __process_event_file(self, player_driver, file_name, file_contents):
+
+        # Function Description: The function processes the content from a single file.
+        # Function Parameters: player_driver (An already accessible player driver to insert players.)
+        # file_name (The name of the file.), file_contents (The contents from the event file.)
+        # Function Throws: Nothing
+        # Function Returns: Nothing
+
+        count = 0    # TEMP: Delete Me
+        for file_line in file_contents:                                                              # Processes each file line by line, record failed insertions into query file.
+            try:
+                self.__propogate_line_into_tables(file_line, player_driver, self.__db_connection__)
+            except UnrecognisableMySQLBehaviour as err:
+                self.write_into_log_file(self.log_file.absolute(), ["\n Name of File: {}".format(str(file_name)), 
+                                           "\n The Reasoning: {}".format(str(err))])
+            count += 1
+            if count > 10:
+                break  # STOP AT 10 LINE
+
     def process_event_files(self):
 
         # Function Description: The function will be the driver of the data insertion process. Assume we will possess 
@@ -324,121 +362,24 @@ class Insert_Driver():
         # Function Parameters: Nothing
         # Function Throws: Nothing
         # Function Returns: Nothing
-        #player_driver = Player_Driver(self.conn, self.path_to_player_list, player_reference)                # Let us only create this once to avoid needless File I/O processing.
 
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
+        self.__empty_tables()                                                                                        # Empty out the database.
         with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
-        player_driver = Player_Driver(self.conn, self.path_to_player_list, player_reference)                # Let us only create this once to avoid needless File I/O processing.
+        player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list, player_reference)            # Let us only create this once to avoid needless File I/O processing.
         for file_name in listdir(path_to_event_files):
-            count = 0    # TEMP: Delete Me
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
-            for file_line in event_file:                                # Processes each file line by line.
-                self.__propogate_line_into_tables(file_line, player_driver, self.conn)
-                count += 1
-                if count > 10:
-                    break  # STOP AT 10 LINE
+            self.__process_event_file(player_driver, path_to_event_files / file_name, event_file)
             event_file.close()
+        self.write_into_log_file(self.log_file, strftime("%Y-%m-%d_%H_%M_%S", gmtime()))                            # Log the ending time.
         print("FIN")
 
-def clear_tables():     # Temporary Function to Delete Table Content
-    db_connection = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
-    cursor = db_connection.cursor()
-    cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
-    cursor.execute('DELETE From game_day;')                 # Game_Day (5)
-    cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
-    cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
-    cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
-    cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
-    cursor.execute('DELETE From res_batter_information')    # Res_Batter_Information (3 / 3)
-    cursor.execute('DELETE From res_pitcher_information')   # Res_Pitcher_Information (3 / 3)
-    cursor.execute('DELETE From event_shortstop')           # Event_Shortstop (2 / 2)
-    cursor.execute('DELETE From event_right_field')         # event_right_field (2 / 2)
-    cursor.execute('DELETE From event_centre_field')        # event_centre_field (2 / 2)
-    cursor.execute('DELETE From event_left_field')          # event_left_field (2 / 2)
-    cursor.execute('DELETE From event_catcher')             # event_catcher (2 / 2)
-    cursor.execute('DELETE From event_first_base')          # event_first_base (2 / 2)
-    cursor.execute('DELETE From event_second_base')         # event_second_base (2 / 2)
-    cursor.execute('DELETE From event_third_base')                  # event_third_base (2 / 2)
-    cursor.execute('DELETE From Responsible_Pitcher_For_First')     # Responsible_Pitcher_For_First (2 / 2)
-    cursor.execute('DELETE From Responsible_Pitcher_For_Second')    # Responsible_Pitcher_For_Second (2 / 2)
-    cursor.execute('DELETE From Responsible_Pitcher_For_Third')     # Responsible_Pitcher_For_Third (2 / 2)
-    cursor.execute('DELETE From Runner_on_First_Details')           # runner_on_first_details (8 / 8)
-    cursor.execute('DELETE From Runner_on_Second_Details')          # runner_on_second_details (8 / 8)
-    cursor.execute('DELETE From Runner_on_Third_Details')           # runner_on_third_details (8 / 8)
-    cursor.execute('DELETE From pinch_runner_removed_1st')          # pinch_runner_removed_1st (2 / 2)
-    cursor.execute('DELETE From pinch_runner_removed_2nd')          # pinch_runner_removed_2nd (2 / 2)
-    cursor.execute('DELETE From pinch_runner_removed_3rd')          # pinch_runner_removed_3rd (2 / 2)
-    cursor.execute('DELETE From batter_removed_for_pinch_hitter')   # position_of_batter_for_pinch_hitter (3 / 3)
-    cursor.execute('DELETE From fielder_assist_information')        # fielder_assist_information (3 / 3)
-    cursor.execute('DELETE From fielder_putout_information')        # fielder_putout_information (3 / 3)
-    db_connection.commit()
-    cursor.close() 
 
 ######### READ IN PLAYER FILE FIRST!!!!
-# cursor = db_connection.cursor()
-clear_tables()
-insert_driver = Insert_Driver()
+conn = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
+insert_driver = Insert_Driver(conn)
 insert_driver.process_event_files()
-#player_driver = Player_Driver(db_connection, Path("BaseballAnalytics/bin/db/raw_data/rosters/"))     # Let us only create this once to avoid needless File I/O processing.
-
-# filterwarnings('error')                         # Convert warnings into exceptions to be caught.                             
-# cursor.execute('DELETE FROM game_day where game_day.game_ID = \'TOR201903280\'')               # Empty the tables.
-# #cursor.execute('DELETE FROM Event_Instance')
-# db_connection.commit()
-# try_again = True                                # Track whether we should attempt to the query once.
-# attempt_counter = 0
-# while try_again and attempt_counter < 5:
-#     attempt_counter += 1
-#     try:
-#         print("SIIIII")
-#         cursor.execute(event_query)                  
-#     except Warning as warn:
-#         print(attempt_counter)
-#         print(warn)
-#         try_again = False
-#         warn = str(warn)
-#         warn_number = warn[1:5]
-#         if int(warn_number) == 1452:                # Handle warning 1452, indicating foreign key constraint failure. 
-#             try_again = True                        # Attempt to insert a query again if a foreign constraint failure was raised. 
-#             result = handle_foreign_key_constraint(db_connection, warn) 
-#             print(result)
-
-
-
-
-
-
-# # Function Name: appendFailureReport
-# # Function Description: Document when a query fails and provide meaningful output. Each error message will be separated by 10 '/' chars.
-# # Make sure the file is already CREATED!
-# # Parameters: folderName (The folder where the query was formed), fileName (The file where the query was formed), 
-# # numberID (The ID where the query failed), queryString (The query that was inputted), errorFile (The file to write error reports.)
-# # Returns: newString (The string with the proper changes)
-# # Throws: None
-
-# def appendFailureReport(folderName, fileName, numberID, queryString, errorFile):
-#     stringToWrite = "The folder name: " + str(folderName) + '\n'                       # Build a string. Protect against types by converting params to strings.
-#     stringToWrite += "The file name: " + str(fileName) + '\n'
-#     stringToWrite += "The ID where the error occured: " + str(numberID) + '\n'
-#     stringToWrite += "The query string that was attepted: " + str(queryString) + '\n'
-#     stringToWrite += ('/' * 10) + '\n'                                                 # End the string distinctly with 10 '/' chars.
-#     f = open(errorFile, "a+")               # Open file, create a file if it doesn't exist. Write, then close file.
-#     f.write(stringToWrite)
-#     f.close()
-
-# # Function Name: pickleRosterName
-# # Function Description: Read the data into a dataframe and store away into a pickle file to be used for different function.
-# # Parameters: fileName (The excel file name with the full rosters)
-# # Returns: None
-# # Throws: None
-
-# def pickleRosterName(fileName):
-#     df = pd.read_excel(fileName)
-#     tempName = "rosterNames.pickle"         # Store the location of where the file will be pickled
-#     tempName = PICKLE_DIR + tempName
-#     df.to_pickle(tempName)
-#     print("Finished Pickling Roster File.")
 
 # # Function Name: writeEventFileMySql
 # # Function Description: Read the data into mySQL and pickle into a file for later use.
@@ -446,40 +387,4 @@ insert_driver.process_event_files()
 # # Returns: None
 # # Throws: None
 
-# def writeEventFileMySql(eventFilesDir):
-#     aCursor = conn.cursor()                                                         # Once connection is established, cursor will be used to insert data.
-#     startTime = time.time()
-#     shiftingTime = time.time()                                                # Signal to the user that the program is still running
-#     numErrors = 0
-#     for folder in os.listdir(eventFilesDir):                                  # Loop through each file to read data into the database
-#         for fileName in os.listdir(os.path.join(eventFilesDir, folder)):
-#             conjoinedFileName = os.path.join(eventFilesDir, folder, fileName)      # Build the path 
-#             with open(conjoinedFileName) as f:                                     # Loop through the entire file and input each line into MySQL.
-#                 for line in f:
-#                     currentID, numErrors = executeQuery(currentID, line, folder, fileName, aCursor, numErrors)        # Manipulate the current ID 
-#         currentTime = time.time()
-#         if ((currentTime - shiftingTime) > 300):                                                # Indicate number of entries after five minutes
-#             print("Time that has passed: " + str((time.time() - startTime) / 60))
-#             print("The number of events inserted: " + str(currentID))
-#             print(75 * "-")
-#             shiftingTime = time.time()                                           # Reset marker to current time
-#     conn.commit()                                                                # The connection must be committed to save all the data inputted.
-#     aCursor.close()                                                                    # Close the connection
-#     print("Connection closed. The database has been loaded. Total runtime: " + str((time.time() - startTime) / 60))
-#     print("Total number of events inserted: " + str(currentID))
-  
 
-
-# #pickleRosterName()          # Read the roster file into the dataframe (Requires only one run)
-# #readRosterIntoMySQL()            # Read the roster file into the mySQL (Requires only one run)
-# #writeEventFileMySql(EVENT_FILES)
-
-# #conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")
-
-# #playerListFile = r"C:\Users\micha\Documents\GitHub\BaseballAnalytics\Documentation\NamesOfPlayersInTheMLB.csv"
-# #evnFilesRootDir = r"C:\Users\micha\Documents\Analytics_And_Coding\BaseBall_Analytics\EVN_Or_EVA_Files_To_CSV\Processed_Files"
-# #p = Player_Driver(conn, playerListFile)
-# #g = Game_Driver(conn)
-# #e = Event_Driver(conn)
-# #p.checkAndInsert("andre001", "Positional")
-# #g.insertGame('TEX201504290', 'SEA') 
