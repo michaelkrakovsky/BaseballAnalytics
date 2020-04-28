@@ -54,6 +54,7 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         cursor = self.__db_connection__.cursor()
+        cursor.execute('SET SQL_SAFE_UPDATES = 0;')
         cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
         cursor.execute('DELETE From game_day;')                 # Game_Day (5)
         cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
@@ -345,6 +346,7 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         error_count = 0
+        r = 0
         for file_line in file_contents:                                                              # Processes each file line by line, record failed insertions into query file.
             try:
                 self.__propogate_line_into_tables(file_line, player_driver, self.__db_connection__)
@@ -352,6 +354,8 @@ class Insert_Driver(Driver):
                 self.write_into_log_file(self.log_file.absolute(), ["\n\n Name of File: {}".format(str(file_name)), 
                                         "\n The Reasoning: {}".format(str(err))])
                 error_count += 1
+            r += 1
+            if r > 10: break       # DELETE ME
         return error_count
 
     def process_event_files(self):
@@ -364,12 +368,16 @@ class Insert_Driver(Driver):
         
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
-        self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
+        print("2222")
         error_count = 0
         file_count = 0
         self.__empty_tables()                                                                                        # Empty out the database.
-        with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
-        player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list, player_reference)            # Let us only create this once to avoid needless File I/O processing.
+        print("111111")
+       # with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
+        #player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list, player_reference)            # Let us only create this once to avoid needless File I/O processing.
+        player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list)            # Let us only create this once to avoid needless File I/O processing.
+        player_driver.batch_insertion()                                                                              # Insert all the players to forgoe the need for checks.
+        self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 

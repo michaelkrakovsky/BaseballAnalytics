@@ -16,9 +16,10 @@
 
 # --------------------------------------- Respective to Error Informational Positional ---------------------------------------- #
 #SET SQL_SAFE_UPDATES = 0;           # Set to unsfe know
-select * from game_day;
+#select * from game_day;
 #DELETE From game_day;
 #select * from event_instance;
 #select * from player_information;
 
-#select * from batter_in_event
+select count(*) from event_instance;
+
