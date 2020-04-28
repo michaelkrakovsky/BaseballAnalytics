@@ -325,12 +325,12 @@ ENGINE = InnoDB;
 -- Table `Baseball_Stats_DB`.`Pinch_Runner_Removed_1st`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Pinch_Runner_Removed_1st` (
-  `Runner_Removed_For_Pinch-Runner_On_1st` VARCHAR(45) NOT NULL,
+  `Runner_Removed_For_Pinch_Runner_On_1st` VARCHAR(45) NOT NULL,
   `idEvent` VARCHAR(60) NOT NULL,
-  PRIMARY KEY (`Runner_Removed_For_Pinch-Runner_On_1st`, `idEvent`),
+  PRIMARY KEY (`Runner_Removed_For_Pinch_Runner_On_1st`, `idEvent`),
   INDEX `Event_ID_Pinch_1st_idx` (`idEvent` ASC) VISIBLE,
   CONSTRAINT `Positional_Player_Pinch`
-    FOREIGN KEY (`Runner_Removed_For_Pinch-Runner_On_1st`)
+    FOREIGN KEY (`Runner_Removed_For_Pinch_Runner_On_1st`)
     REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
@@ -346,12 +346,12 @@ ENGINE = InnoDB;
 -- Table `Baseball_Stats_DB`.`Pinch_Runner_Removed_2nd`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Pinch_Runner_Removed_2nd` (
-  `Runner_Removed_For_Pinch-Runner_On_2nd` VARCHAR(45) NOT NULL,
+  `Runner_Removed_For_Pinch_Runner_On_2nd` VARCHAR(45) NOT NULL,
   `idEvent` VARCHAR(60) NOT NULL,
-  PRIMARY KEY (`Runner_Removed_For_Pinch-Runner_On_2nd`, `idEvent`),
+  PRIMARY KEY (`Runner_Removed_For_Pinch_Runner_On_2nd`, `idEvent`),
   INDEX `Event_ID_Pinch_1st_idx` (`idEvent` ASC) VISIBLE,
   CONSTRAINT `Positional_Player_Pinch_2nd`
-    FOREIGN KEY (`Runner_Removed_For_Pinch-Runner_On_2nd`)
+    FOREIGN KEY (`Runner_Removed_For_Pinch_Runner_On_2nd`)
     REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
@@ -367,12 +367,12 @@ ENGINE = InnoDB;
 -- Table `Baseball_Stats_DB`.`Pinch_Runner_Removed_3rd`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Pinch_Runner_Removed_3rd` (
-  `Runner_Removed_For_Pinch-Runner_On_3rd` VARCHAR(45) NOT NULL,
+  `Runner_Removed_For_Pinch_Runner_On_3rd` VARCHAR(45) NOT NULL,
   `idEvent` VARCHAR(60) NOT NULL,
-  PRIMARY KEY (`Runner_Removed_For_Pinch-Runner_On_3rd`, `idEvent`),
+  PRIMARY KEY (`Runner_Removed_For_Pinch_Runner_On_3rd`, `idEvent`),
   INDEX `Event_ID_Pinch_1st_idx` (`idEvent` ASC) VISIBLE,
   CONSTRAINT `Positional_Player_Pinch_2nd0`
-    FOREIGN KEY (`Runner_Removed_For_Pinch-Runner_On_3rd`)
+    FOREIGN KEY (`Runner_Removed_For_Pinch_Runner_On_3rd`)
     REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
@@ -422,17 +422,17 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Batter_Removed_For_Pinch_Hitter` (
   `Batter_Removed_For_Pinch_Hitter` VARCHAR(45) NOT NULL,
-  `Event_ID` VARCHAR(60) NOT NULL,
+  `idEvent` VARCHAR(60) NOT NULL,
   `Position_of_Batter_removed_for_Pinch_Hitter` INT NOT NULL,
-  PRIMARY KEY (`Batter_Removed_For_Pinch_Hitter`, `Event_ID`),
-  INDEX `Event_ID_Pinch_1st_idx` (`Event_ID` ASC) VISIBLE,
+  PRIMARY KEY (`Batter_Removed_For_Pinch_Hitter`, `idEvent`),
+  INDEX `Event_ID_Pinch_1st_idx` (`idEvent` ASC) VISIBLE,
   CONSTRAINT `Positional_Player_Pinch_2nd00`
     FOREIGN KEY (`Batter_Removed_For_Pinch_Hitter`)
     REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `Event_ID_Pinch_2nd00`
-    FOREIGN KEY (`Event_ID`)
+    FOREIGN KEY (`idEvent`)
     REFERENCES `Baseball_Stats_DB`.`Event_Instance` (`idEvent`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)

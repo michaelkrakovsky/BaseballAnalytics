@@ -143,17 +143,17 @@ class Insert_Driver(Driver):
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was incorrectly inserted.)
         # Function Returns: Nothing
 
-        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_1st'] == '':                                                             # Do not attempt an insertion if there is no player to insert.
-            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_1st', 'idEvent'], player_driver, 
-                                                                    event_query_dict, 'Pinch_Runner_Removed_1st', 'Runner_Removed_For_Pinch-Runner_On_1st')
+        if not event_query_dict['Runner_Removed_For_Pinch_Runner_On_1st'] == '':                                                             # Do not attempt an insertion if there is no player to insert.
+            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch_Runner_On_1st', 'idEvent'], player_driver, 
+                                                                    event_query_dict, 'Pinch_Runner_Removed_1st', 'Runner_Removed_For_Pinch_Runner_On_1st')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_1st table was unsuccessful.")
-        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_2nd'] == '':
-            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_2nd', 'idEvent'], player_driver, 
-                                                                event_query_dict, 'Pinch_Runner_Removed_2nd', 'Runner_Removed_For_Pinch-Runner_On_2nd')
+        if not event_query_dict['Runner_Removed_For_Pinch_Runner_On_2nd'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch_Runner_On_2nd', 'idEvent'], player_driver, 
+                                                                event_query_dict, 'Pinch_Runner_Removed_2nd', 'Runner_Removed_For_Pinch_Runner_On_2nd')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_2nd table was unsuccessful.")
-        if not event_query_dict['Runner_Removed_For_Pinch-Runner_On_3rd'] == '':
-            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch-Runner_On_3rd', 'idEvent'], player_driver, 
-                                                                event_query_dict, 'Pinch_Runner_Removed_3rd', 'Runner_Removed_For_Pinch-Runner_On_3rd')
+        if not event_query_dict['Runner_Removed_For_Pinch_Runner_On_3rd'] == '':
+            check_insertion = event_driver.insert_player_from_event(['Runner_Removed_For_Pinch_Runner_On_3rd', 'idEvent'], player_driver, 
+                                                                event_query_dict, 'Pinch_Runner_Removed_3rd', 'Runner_Removed_For_Pinch_Runner_On_3rd')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_3rd table was unsuccessful.")
         if not event_query_dict['Batter_Removed_For_Pinch_Hitter'] == '':                                                             
             check_insertion = event_driver.insert_player_from_event(['Batter_Removed_For_Pinch_Hitter', 'Position_of_Batter_removed_for_Pinch_Hitter', 'idEvent'], 

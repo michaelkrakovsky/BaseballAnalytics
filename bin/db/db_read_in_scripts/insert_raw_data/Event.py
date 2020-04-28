@@ -125,9 +125,9 @@ class Event_Query_Dict:
         eventDict['Pinch_Runner_On_1st'] = splitString[80]                           # Table Name: runner_on_first_details
         eventDict['Pinch_Runner_On_2nd'] = splitString[81]                           # Table Name: runner_on_second_details
         eventDict['Pinch_Runner_On_3rd'] = splitString[82]                           # Table Name: runner_on_third_details
-        eventDict['Runner_Removed_For_Pinch-Runner_On_1st'] = splitString[83]        # Table Name: pinch_runner_removed_1st
-        eventDict['Runner_Removed_For_Pinch-Runner_On_2nd'] = splitString[84]        # Table Name: pinch_runner_removed_2nd
-        eventDict['Runner_Removed_For_Pinch-Runner_On_3rd'] = splitString[85]        # Table Name: pinch_runner_removed_3rd
+        eventDict['Runner_Removed_For_Pinch_Runner_On_1st'] = splitString[83]        # Table Name: pinch_runner_removed_1st
+        eventDict['Runner_Removed_For_Pinch_Runner_On_2nd'] = splitString[84]        # Table Name: pinch_runner_removed_2nd
+        eventDict['Runner_Removed_For_Pinch_Runner_On_3rd'] = splitString[85]        # Table Name: pinch_runner_removed_3rd
         eventDict['Batter_Removed_For_Pinch_Hitter'] = splitString[86]               # Table Name: position_of_batter_for_pinch_hitter
         eventDict['Position_of_Batter_removed_for_Pinch_Hitter'] = splitString[87]   # Table Name: position_of_batter_for_pinch_hitter   
         eventDict['Fielder_With_First_Putout'] = splitString[88]                     # Table Name: fielder_putout_information                 
