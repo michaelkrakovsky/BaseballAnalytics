@@ -350,7 +350,7 @@ class Insert_Driver(Driver):
             try:
                 self.__propogate_line_into_tables(file_line, player_driver, self.__db_connection__)
             except UnrecognisableMySQLBehaviour as err:
-                self.write_into_log_file(self.log_file.absolute(), ["\n Name of File: {}".format(str(file_name)), 
+                self.write_into_log_file(self.log_file.absolute(), ["\n\n Name of File: {}".format(str(file_name)), 
                                            "\n The Reasoning: {}".format(str(err))])
                 error_count += 1
             count += 1

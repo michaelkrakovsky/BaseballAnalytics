@@ -6,24 +6,23 @@ from pickle import dump, load, HIGHEST_PROTOCOL
 
 class Player:
 
-    def __init__(self, fName, lName, playerDebut):
+    def __init__(self, first_name, last_name, player_debut):
 
         # Function Description: Intialise the Player object. The Player object will encapsulate basic knowledge to make the code more readable.
-        # Parameters: self (The instance of the object), 
-        # fName (The player's first name.), lName (The player's last name.), playerDebut (The date of deployment.) 
-        # Throws: ValueError (Throw when one parameter is not a string.)
-        # Returns: None
+        # Function Parameters: first_name (The player's first name.), last_name (The player's last name.), player_debut (The date of deployment.) 
+        # Function Throws: ValueError (Throw when one parameter is not a string.)
+        # Function Returns: None
 
-        if (str(type(fName)) != "<class \'str\'>"):
+        if (str(type(first_name)) != "<class \'str\'>"):
             raise ValueError("ERROR: || Class -> Player || Function -> __init__ || Reason -> First Name is not a string.")
-        elif (str(type(lName)) != "<class \'str\'>"):
+        elif (str(type(last_name)) != "<class \'str\'>"):
             raise ValueError("ERROR: || Class -> Player || Function -> __init__ || Reason -> Last Name is not a string.")
-        elif (str(type(playerDebut)) != "<class \'str\'>"):
+        elif (str(type(player_debut)) != "<class \'str\'>"):
             raise ValueError("ERROR: || Class -> Player || Function -> __init__ || Reason -> Player Debut is not a string.")
         else:
-            self.firstName = fName
-            self.lastName = lName
-            self.playerDebut = playerDebut
+            self.first_name = first_name.replace('\'', '\\\'')
+            self.last_name = last_name.replace('\'', '\\\'')
+            self.player_debut = player_debut
 
 class Player_Driver(Driver):
 
@@ -101,8 +100,8 @@ class Player_Driver(Driver):
         # Funtion Returns: query (The query to be inserted into the database.)
 
         analyse_player = self.__player_list__[player_Id]
-        convert_date = self.__convert_date(analyse_player.playerDebut)
-        query = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.lastName + "\', \'" + analyse_player.firstName + "\', \'" + convert_date + "\')"
+        convert_date = self.__convert_date(analyse_player.player_debut)
+        query = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.last_name + "\', \'" + analyse_player.first_name + "\', \'" + convert_date + "\')"
         return query
 
     def check_and_insert_player(self, player_Id):
