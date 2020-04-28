@@ -156,7 +156,7 @@ class Insert_Driver(Driver):
                                                                 event_query_dict, 'Pinch_Runner_Removed_3rd', 'Runner_Removed_For_Pinch-Runner_On_3rd')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Pinch_Runner_Removed_3rd table was unsuccessful.")
         if not event_query_dict['Batter_Removed_For_Pinch_Hitter'] == '':                                                             
-            check_insertion = event_driver.insert_player_from_event(['Batter_removed_For_Pinch_Hitter', 'Position_of_Batter_removed_for_Pinch_Hitter', 'idEvent'], 
+            check_insertion = event_driver.insert_player_from_event(['Batter_Removed_For_Pinch_Hitter', 'Position_of_Batter_removed_for_Pinch_Hitter', 'idEvent'], 
                                                                 player_driver, event_query_dict, 'Batter_Removed_For_Pinch_Hitter', 'Batter_Removed_For_Pinch_Hitter')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Batter_Removed_For_Pinch_Hitter table was unsuccessful.")
             
@@ -379,7 +379,6 @@ class Insert_Driver(Driver):
             self.print_progress_bar(num + 1, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
         self.write_into_log_file(self.log_file, "\n Number of Errors: {}".format(error_count))
         self.write_into_log_file(self.log_file, strftime("\n%Y-%m-%d_%H_%M_%S", gmtime()))                           # Log the ending time.
-        print("FIN")
 
 def main():
 
