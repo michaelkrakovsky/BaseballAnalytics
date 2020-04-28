@@ -54,7 +54,6 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         cursor = self.__db_connection__.cursor()
-        cursor.execute('SET SQL_SAFE_UPDATES = 0;')
         cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
         cursor.execute('DELETE From game_day;')                 # Game_Day (5)
         cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
@@ -315,15 +314,16 @@ class Insert_Driver(Driver):
         check_event = event_driver.insert_event_instance(event_query_dict)
         if (not check_event): raise UnrecognisableMySQLBehaviour("Query Failed attempting to insert into the Event_Instance table.")
 
-    def __propogate_line_into_tables(self, file_line, player_driver, db_connection):
+    def __propogate_line_into_tables(self, file_line, num_in_file, player_driver, db_connection):
 
         # Function Description: Given a line from the text file, propogate the query throughout the entire database.
-        # Function Parameters: file_line (A line from an event file.), player_driver (A reusable player driver to be used to propogate date throughout the database.), 
-        #   db_connection (The connection to the database.)
+        # Function Parameters: file_line (A line from an event file.), num_in_file (The number in the file where the event line appears.)
+        #    player_driver (A reusable player driver to be used to propogate date throughout the database.), 
+        #    db_connection (The connection to the database.)
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        event_query_dict = Event_Query_Dict(file_line)
+        event_query_dict = Event_Query_Dict(file_line, num_in_file)
         e_q_d = event_query_dict.event_query_dict
         event_driver = Event_Driver(db_connection)                                                # Structure the data from the file line.
         self.__game_table_insertion(e_q_d, db_connection)                                         # Propogate into game table. 
@@ -347,9 +347,9 @@ class Insert_Driver(Driver):
 
         error_count = 0
         r = 0
-        for file_line in file_contents:                                                              # Processes each file line by line, record failed insertions into query file.
+        for pos_in_file, file_line in enumerate(file_contents):                                               # Processes each file line by line, record failed insertions into query file.
             try:
-                self.__propogate_line_into_tables(file_line, player_driver, self.__db_connection__)
+                self.__propogate_line_into_tables(file_line, pos_in_file, player_driver, self.__db_connection__)
             except UnrecognisableMySQLBehaviour as err:
                 self.write_into_log_file(self.log_file.absolute(), ["\n\n Name of File: {}".format(str(file_name)), 
                                         "\n The Reasoning: {}".format(str(err))])
@@ -368,7 +368,6 @@ class Insert_Driver(Driver):
         
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
-        print("2222")
         error_count = 0
         file_count = 0
         self.__empty_tables()                                                                                        # Empty out the database.

@@ -11,29 +11,29 @@ from Driver_Exceptions import UnrecognisableMySQLBehaviour
 
 class Event_Query_Dict:
 
-    def __init__(self, event_line):
+    def __init__(self, event_line, num_in_file):
 
         # Function Description: This class will encapsulate all the mappings pertaining to an event line.
-        # Parameters: event_line (A line from an Event File containing the needed data.)
-        # Throws: None
-        # Returns: None
+        # Function Parameters: event_line (A line from an Event File containing the needed data.)
+        # Function Throws: None
+        # Function Returns: None
 
-        self.event_query_dict = self.create_event_query_dict(event_line)
+        self.event_query_dict = self.create_event_query_dict(event_line, num_in_file)
 
-    def __createHash(self, stringForHash):
+    def __createHash(self, string_for_hash):
 
         # Function Description: Create a hash which will be the following ID for the event that took place.
-        # Parameters: self (The instance of the object), stringForHash (The string that will be hashed into the ID)
+        # Parameters: string_for_hash (The string that will be hashed into the ID)
         # Returns: newHash (The new ID) Throws: None
         
-        if (str(type(stringForHash)) != '<class \'str\'>'):
+        if (str(type(string_for_hash)) != '<class \'str\'>'):
             raise TypeError("ERROR: || Class -> Event_Driver || Function -> __createHash || Reason -> A non-string entity was inputted.")
-        return sha224(stringForHash.encode('utf-8')).hexdigest()
+        return sha224(string_for_hash.encode('utf-8')).hexdigest()
 
-    def create_event_query_dict(self, full_event_line):
+    def create_event_query_dict(self, full_event_line, num_in_file):
 
         # Function Description: Convert the event instance into a dictionary of keys (The column names from SQL file) with their associated values.
-        # Parameters: self (The instance of the object), full_event_line (A line from the event file)
+        # Function Parameters: full_event_line (A line from the event file), num_in_file (The number in the file where the event line appears.)
         # Throws: None
         # Returns: eventDict (The dictionary of query components to insert.)
 
@@ -41,7 +41,7 @@ class Event_Query_Dict:
         splitString = splitString.split(',')
         if len(splitString) != 96: raise ValueError("ERROR: || Class -> Event_Query_Dict || Function -> __createEventQuerydict || Reason -> The array does not contain 96 elements.")
         eventDict = {}                                             # The following is the hard coded dictionary to hold the query information.
-        eventDict['idEvent'] = self.__createHash(full_event_line)  # Table Name: Event_Instance, Error_Information, Batter_In_Event (W\ Res), Pitcher_In_Event (W\ Res), All Positional Tables 
+        eventDict['idEvent'] = str(num_in_file) + splitString[0]   # Table Name: Event_Instance, Error_Information, Batter_In_Event (W\ Res), Pitcher_In_Event (W\ Res), All Positional Tables 
         eventDict['Game_ID'] = splitString[0]                      # All Resp Tables, All Base Runners, All Pinch Runners and Hitters, Fielding Information Table Name: Event_Instance, Game_Day
         eventDict['Visiting_Team'] = splitString[1]                # Table Name: Game_Day
         eventDict['Inning'] = splitString[2]                       # Table Name: Event_Instance
