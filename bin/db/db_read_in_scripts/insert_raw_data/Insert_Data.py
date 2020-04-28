@@ -9,7 +9,7 @@
 # (either as a positional player or pitcher), the ID prescence will be confirmed. Without proper confirmation, the ID will be inserted into the database.
 
 from pathlib import Path
-from os import listdir
+from os import listdir, path
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
 from Driver import Driver
 from Player import Player_Driver
@@ -27,11 +27,11 @@ class Insert_Driver(Driver):
         #   the class does not perform any queries. The queries are delegated to the specific drivers.
 
         Driver.__init__(self, db_connection)                                                          # The path to the pymysql connector to access the database.
-        self.path_to_log_files = Path("BaseballAnalytics/logs/insert_file_logs/")                     # The path to the log file.
         self.path_to_raw_data = Path("BaseballAnalytics/bin/db/raw_data/")                            # The path to the raw data that will be inserted into the database.
         self.path_to_player_list = self.path_to_raw_data / 'rosters'                                  # The folder containing the player data.
         self.path_to_pickle_player_data = self.path_to_player_list / 'pickle_player_data.pickle'      # The path to the pickle file containing the player information. 
-        self.log_folder = Path('BaseballAnalytics/logs/insert_file_logs/')                              # The path to the log file.
+        self.log_folder = Path('BaseballAnalytics/logs/insert_file_logs/')                            # The path to the log file.
+        self.path_to_raw_data = Path('C:/Users/micha/Desktop/')
         self.log_file = self.__initiate_log_file(self.log_folder)
 
     def __initiate_log_file(self, path_to_folder):
@@ -345,15 +345,16 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         count = 0    # TEMP: Delete Me
+        error_count = 0
         for file_line in file_contents:                                                              # Processes each file line by line, record failed insertions into query file.
             try:
                 self.__propogate_line_into_tables(file_line, player_driver, self.__db_connection__)
             except UnrecognisableMySQLBehaviour as err:
                 self.write_into_log_file(self.log_file.absolute(), ["\n Name of File: {}".format(str(file_name)), 
                                            "\n The Reasoning: {}".format(str(err))])
+                error_count += 1
             count += 1
-            if count > 10:
-                break  # STOP AT 10 LINE
+            if count > 10: return count
 
     def process_event_files(self):
 
@@ -362,29 +363,43 @@ class Insert_Driver(Driver):
         # Function Parameters: Nothing
         # Function Throws: Nothing
         # Function Returns: Nothing
-
+        
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
+        num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
+        self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
+        error_count = 0
+        file_count = 0
         self.__empty_tables()                                                                                        # Empty out the database.
         with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
         player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list, player_reference)            # Let us only create this once to avoid needless File I/O processing.
-        for file_name in listdir(path_to_event_files):
+        for num, file_name in enumerate(listdir(path_to_event_files)):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
-            self.__process_event_file(player_driver, path_to_event_files / file_name, event_file)
+            error_count += self.__process_event_file(player_driver, path_to_event_files / file_name, event_file)
             event_file.close()
-        self.write_into_log_file(self.log_file, strftime("%Y-%m-%d_%H_%M_%S", gmtime()))                            # Log the ending time.
+            file_count += 1
+            self.print_progress_bar(num + 1, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
+        self.write_into_log_file(self.log_file, "\n Number of Errors: {}".format(error_count))
+        self.write_into_log_file(self.log_file, strftime("\n%Y-%m-%d_%H_%M_%S", gmtime()))                           # Log the ending time.
         print("FIN")
 
+def main():
 
-######### READ IN PLAYER FILE FIRST!!!!
-conn = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")       # The path to the pymysql connector to access the database.
-insert_driver = Insert_Driver(conn)
-insert_driver.process_event_files()
+    # Function Description: Create a database connection and process event files. 
 
-# # Function Name: writeEventFileMySql
-# # Function Description: Read the data into mySQL and pickle into a file for later use.
-# # Parameters: eventFilesDir (The directory with folders holding folder of event files related to the decade)
-# # Returns: None
-# # Throws: None
+    conn = pymysql.connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
+    insert_driver = Insert_Driver(conn)
+    insert_driver.process_event_files()
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
 
 
