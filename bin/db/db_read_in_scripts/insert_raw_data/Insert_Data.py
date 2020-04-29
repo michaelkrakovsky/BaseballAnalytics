@@ -59,10 +59,10 @@ class Insert_Driver(Driver):
         with open(path_to_log_file.absolute(), 'w+') as f: f.write("Starting the file read... \n")
         return path_to_log_file
 
-    def __empty_tables(self):
+    def __empty_tables(self, empty_players=False):
 
         # Function Description: The function will empty the entire database of all data.
-        # Function Parameters: Nothing
+        # Function Parameters: empty_players (Decide whether to empty to content from the players table.)
         # Function Throws: Nothing
         # Function Returns: Nothing
 
@@ -70,7 +70,7 @@ class Insert_Driver(Driver):
         cursor.execute('DELETE From event_instance;')           # Event_Instance (29 / 29)
         cursor.execute('DELETE From game_day;')                 # Game_Day (5)
         cursor.execute('DELETE From error_information;')        # Error Information (Possible 6)
-       # cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
+        if empty_players: cursor.execute('DELETE From player_information')        # Player Information (4 / 4)
         cursor.execute('DELETE From batter_in_event')           # Batter_In_Event (10 / 10)
         cursor.execute('DELETE From pitcher_in_event')          # Pitcher_In_Event (4 / 4)
         cursor.execute('DELETE From res_batter_information')    # Res_Batter_Information (3 / 3)
@@ -209,31 +209,31 @@ class Insert_Driver(Driver):
                                                                 event_query_dict, 'Runner_on_Third_Details')
             if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Runner_on_Third_Details table was unsuccessful.")
 
-    def __position_player_insertion(self, event_query_dict, event_driver, db_connection):
+    def __position_player_insertion(self, e_q_d, event_driver, db_connection):
 
         # Function Description: The function inserts the required content into the Positional Player tables. (i.e. 'Event_Shortstop')
-        # Function Parameters: event_query_dict (The event query dictionary to store the results.),
+        # Function Parameters: e_q_d (The event query dictionary to store the results.),
         #     event_driver (The event driver that allows the insertion into an event related table.)
         #     db_connection (The current open connection to the database.)
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
         # Function Returns: Nothing
 
-        query = self.create_query_string(['Shortstop', 'idEvent'], event_query_dict, 'Event_Shortstop') + '\n'
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Shortstop table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['Right_Field', 'idEvent'], event_query_dict, 'Event_Right_Field')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Right_Field table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['Center_Field', 'idEvent'], event_query_dict, 'Event_Centre_Field')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Centre_Field table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['Left_Field', 'idEvent'], event_query_dict, 'Event_Left_Field')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Left_Field table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['Catcher', 'idEvent'], event_query_dict, 'Event_Catcher')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Catcher table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['First_Base', 'idEvent'], event_query_dict, 'Event_First_Base')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_First_Base table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['Second_Base', 'idEvent'], event_query_dict, 'Event_Second_Base')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Second_Base table was unsuccessful.")
-        check_insertion = event_driver.insert_event_dynamic(['Third_Base', 'idEvent'], event_query_dict, 'Event_Third_Base')
-        if not check_insertion: raise UnrecognisableMySQLBehaviour("The insertion into the Event_Third_Base table was unsuccessful.")
+        check_query = event_driver.insert_event_dynamic(['Shortstop', 'idEvent'], e_q_d, 'Event_Shortstop')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the Shortstop.")
+        check_query = event_driver.insert_event_dynamic(['Right_Field', 'idEvent'], e_q_d, 'Event_Right_Field')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the RF.")
+        check_query = event_driver.insert_event_dynamic(['Center_Field', 'idEvent'], e_q_d, 'Event_Centre_Field')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the CF.")
+        check_query = event_driver.insert_event_dynamic(['Left_Field', 'idEvent'], e_q_d, 'Event_Left_Field')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the LF.")
+        check_query = event_driver.insert_event_dynamic(['Catcher', 'idEvent'], e_q_d, 'Event_Catcher')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the Catcher.")
+        check_query = event_driver.insert_event_dynamic(['First_Base', 'idEvent'], e_q_d, 'Event_First_Base')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the First Base.")
+        check_query = event_driver.insert_event_dynamic(['Second_Base', 'idEvent'], e_q_d, 'Event_Second_Base')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the Second Base.")
+        check_query = event_driver.insert_event_dynamic(['Third_Base', 'idEvent'], e_q_d, 'Event_Third_Base')
+        if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the Third Base.")
 
     def __duel_in_event_insertion_res(self, event_query_dict, event_driver, db_connection):
 
@@ -298,9 +298,7 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         game_driver = Game_Driver(db_connection)
-        check_game = game_driver.check_game(event_query_dict['Game_ID'])                                            # Ensure the game is inserted.
-        if check_game == False: 
-            check_game = game_driver.insert_game(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])    # Insert the game if it is not found.
+        check_game = game_driver.insert_game(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])           # Insert the game if it is not found.
         if check_game == False: raise UnrecognisableMySQLBehaviour("Unable to insert the game into the table after the game was not found within the table.")
 
     def __event_instance_insertion(self, event_query_dict, event_driver, db_connection):
@@ -314,19 +312,15 @@ class Insert_Driver(Driver):
         check_event = event_driver.insert_event_instance(event_query_dict)
         if (not check_event): raise UnrecognisableMySQLBehaviour("Query Failed attempting to insert into the Event_Instance table.")
 
-    def __propogate_line_into_tables(self, file_line, num_in_file, player_driver, event_driver, db_connection):
+    def __propogate_line_into_tables(self, e_q_d, event_driver, db_connection):
 
         # Function Description: Given a line from the text file, propogate the query throughout the entire database.
-        # Function Parameters: file_line (A line from an event file.), num_in_file (The number in the file where the event line appears.)
-        #    player_driver (A reusable player driver to be used to propogate date throughout the database.), 
+        # Function Parameters: e_q_d (The event query dictionary to propogate throughout the tables.), 
         #    event_driver (An existing event driver to utilise the capailitites in that package.)
         #    db_connection (The connection to the database.)
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        event_query_dict = Event_Query_Dict(file_line, num_in_file)
-        e_q_d = event_query_dict.event_query_dict
-        self.__game_table_insertion(e_q_d, db_connection)                                         # Propogate into game table. 
         self.__event_instance_insertion(e_q_d, event_driver, db_connection)                       # Propogate into the event instance table.
         self.__error_information_insertion(e_q_d, event_driver, db_connection)                    # Propogate into the error information table.
         self.__duel_in_event_insertion(e_q_d, event_driver, db_connection)                        # Propogate into the Batter and Pitcher tables.
@@ -337,26 +331,27 @@ class Insert_Driver(Driver):
         self.__putout_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Putout Fielders in the Event.
         self.__assist_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Assist Fielders in the Event.
 
-    def __process_event_file(self, player_driver, file_name, file_contents):
+    def __process_event_file(self, file_name, file_contents):
 
         # Function Description: The function processes the content from a single file.
-        # Function Parameters: player_driver (An already accessible player driver to insert players.)
-        # file_name (The name of the file.), file_contents (The contents from the event file.)
+        # Function Parameters: file_name (The name of the file.), file_contents (The contents from the event file.)
         # Function Throws: Nothing
         # Function Returns: Nothing
 
         error_count = 0
-        r = 0
-        event_driver = Event_Driver(self.__db_connection__)                                                            # Structure the data from the file line.
+        event_driver = Event_Driver(self.__db_connection__)                                                   # Structure the data from the file line.
+        previous_game_id = None
         for pos_in_file, file_line in enumerate(file_contents):                                               # Processes each file line by line, record failed insertions into query file.
+            e_q_d = Event_Query_Dict(file_line, pos_in_file)
+            if previous_game_id != e_q_d.event_query_dict['Game_ID']:                                         # Check whether to propogate into the game table.
+                self.__game_table_insertion(e_q_d.event_query_dict, self.__db_connection__)                           
+            previous_game_id = e_q_d.event_query_dict['Game_ID']
             try:
-                self.__propogate_line_into_tables(file_line, pos_in_file, player_driver, event_driver, self.__db_connection__)
+                self.__propogate_line_into_tables(e_q_d.event_query_dict, event_driver, self.__db_connection__)
             except UnrecognisableMySQLBehaviour as err:
                 self.write_into_log_file(self.log_file.absolute(), ["\n\n Name of File: {}".format(str(file_name)), 
                                         "\n The Reasoning: {}".format(str(err))])
                 error_count += 1
-            r += 1
-            if r > 10: break       # DELETE ME
         return error_count
 
     def process_event_files(self):
@@ -373,13 +368,13 @@ class Insert_Driver(Driver):
         file_count = 0
         self.__empty_tables()                                                                               # Empty out the database.
         player_driver = self.__initiate_player_driver()                                                     
-        #player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
         print("Beginning Event file Insertion.")
         self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
-            error_count += self.__process_event_file(player_driver, path_to_event_files / file_name, event_file)
+            error_count += self.__process_event_file(path_to_event_files / file_name, event_file)
             event_file.close()
             file_count += 1
             self.print_progress_bar(num + 1, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
