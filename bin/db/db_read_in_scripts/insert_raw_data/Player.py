@@ -21,9 +21,34 @@ class Player:
         elif (str(type(player_debut)) != "<class \'str\'>"):
             raise ValueError("ERROR: || Class -> Player || Function -> __init__ || Reason -> Player Debut is not a string.")
         else:
-            self.first_name = first_name.replace('\'', '\\\'')
-            self.last_name = last_name.replace('\'', '\\\'')
-            self.player_debut = player_debut
+            self.first_name = self.__manipulate_str(first_name)
+            self.last_name = self.__manipulate_str(last_name)
+            self.player_debut = self.__convert_date(player_debut)
+
+    def __convert_date(self, date):
+
+        # Function Description: Convert the date from the CSV file into to proper MySQL format.
+        # Parameters: self (The instance of the object.), 
+        # date (str: The date present in the CSV file.), 
+        # Throws: None
+        # Returns: newDate (str: The new converted date)
+
+        if date == '': return '1000-09-10'
+        newDate = date[-4:] + '-'
+        newDate += date[0:2] + '-'
+        newDate += date[3:5]
+        return newDate   # Format: Year-Month-Day
+
+    def __manipulate_str(self, string):
+
+        # Function Description: Edit an incoming string to insure it is properly queried.
+        # Function Parameters: Nothing
+        # Function Throws: Nothing
+        # Function Returns: The eligible string to be queried into the database.
+
+        if string == '': return ''
+        string = string.replace('\'', '\\\'')
+        return string.replace('-', '')
 
 class Player_Driver(Driver):
 
@@ -42,20 +67,7 @@ class Player_Driver(Driver):
         if player_dict != None:                                                                   # Discover where to get the player list contents. From the pickle file, excel file or parameters.
             self.__player_list__ = player_dict
         else:
-            self.__player_list__ = self.__process_player_file_contents(self.path_to_player_list, self.path_to_pickle_player_list)
-
-    def __convert_date(self, date):
-
-        # Function Description: Convert the date from the CSV file into to proper MySQL format.
-        # Parameters: self (The instance of the object.), 
-        # date (str: The date present in the CSV file.), 
-        # Throws: None
-        # Returns: newDate (str: The new converted date)
-
-        newDate = date[-4:] + '-'
-        newDate += date[0:2] + '-'
-        newDate += date[3:5]
-        return newDate   # Format: Year-Month-Day   
+            self.__player_list__ = self.__process_player_file_contents(self.path_to_player_list, self.path_to_pickle_player_list)  
 
     def __generate_player_list(self, path_to_player_list):
 
@@ -101,8 +113,7 @@ class Player_Driver(Driver):
         # Funtion Returns: query (The query to be inserted into the database.)
 
         analyse_player = self.__player_list__[player_Id]
-        convert_date = self.__convert_date(analyse_player.player_debut)
-        query = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.last_name + "\', \'" + analyse_player.first_name + "\', \'" + convert_date + "\')"
+        query = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.last_name + "\', \'" + analyse_player.first_name + "\', \'" + analyse_player.player_debut + "\')"
         return query
 
     def player_batch_insertion(self):
