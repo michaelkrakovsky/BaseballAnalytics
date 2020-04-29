@@ -34,6 +34,19 @@ class Insert_Driver(Driver):
         self.path_to_raw_data = Path('C:/Users/micha/Desktop/')
         self.log_file = self.__initiate_log_file(self.log_folder)
 
+    def __initiate_player_driver(self):
+
+        # Function Description: Intitiate the player driver used throughout the entire propogation process.
+        # Function Parameters: Nothing
+        # Function Throws: Nothing
+        # Function Returns: The instantiated player driver.
+
+        try:                                                                                                         # Attempt to pickle file. Else, create your own pickle.        
+            with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
+            return Player_Driver(self.__db_connection__, self.path_to_player_list, player_reference)
+        except FileNotFoundError:
+            return Player_Driver(self.__db_connection__, self.path_to_player_list)
+
     def __initiate_log_file(self, path_to_folder):
 
         # Function Description: The function will create the log file to store the failed queries from the event files.
@@ -370,12 +383,10 @@ class Insert_Driver(Driver):
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
         error_count = 0
         file_count = 0
-        self.__empty_tables()                                                                                        # Empty out the database.
-        print("111111")
-       # with open(self.path_to_pickle_player_data, 'rb') as pickle_file: player_reference = load(pickle_file)
-        #player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list, player_reference)            # Let us only create this once to avoid needless File I/O processing.
-        player_driver = Player_Driver(self.__db_connection__, self.path_to_player_list)            # Let us only create this once to avoid needless File I/O processing.
-        player_driver.batch_insertion()                                                                              # Insert all the players to forgoe the need for checks.
+        self.__empty_tables()                                                                               # Empty out the database.
+        player_driver = self.__initiate_player_driver()                                                     
+        player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        print("Beginning Event file Insertion.")
         self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))

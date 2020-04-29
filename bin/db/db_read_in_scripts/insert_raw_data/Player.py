@@ -105,7 +105,7 @@ class Player_Driver(Driver):
         query = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.last_name + "\', \'" + analyse_player.first_name + "\', \'" + convert_date + "\')"
         return query
 
-    def batch_insertion(self):
+    def player_batch_insertion(self):
 
         # Function Description: The function inserts all the players from the player dict. The data base should be clear.
         # Function Parameters: date (The starting date to begin inserting the players.)
@@ -113,7 +113,8 @@ class Player_Driver(Driver):
         # Function Returns: Nothing
 
         num_players = len(self.__player_list__)
-        self.print_progress_bar(0, num_players, prefix = 'Player Insertion:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
+        print("Beginning to Insert Players.")
+        self.print_progress_bar(0, num_players, prefix = 'Player Insertion:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress.
         for num, player_id in enumerate(self.__player_list__):
             player_status = self.insert_player(player_id)
             self.print_progress_bar(num, num_players, prefix = 'Player Insertion:', suffix = 'Complete', length = 50) 
