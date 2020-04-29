@@ -235,6 +235,27 @@ class Insert_Driver(Driver):
         check_query = event_driver.insert_event_dynamic(['Third_Base', 'idEvent'], e_q_d, 'Event_Third_Base')
         if not check_query: raise UnrecognisableMySQLBehaviour("Failed Attempt to insert the Third Base.")
 
+    def __position_player_insertion_temp(self, e_q_d, event_driver, db_connection):
+
+        # Function Description: The function inserts the required content into the Positional Player tables. (i.e. 'Event_Shortstop')
+        # Function Parameters: e_q_d (The event query dictionary to store the results.),
+        #     event_driver (The event driver that allows the insertion into an event related table.)
+        #     db_connection (The current open connection to the database.)
+        # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was unsuccessful.)
+        # Function Returns: Nothing
+
+        queries = []
+        queries.append(self.create_query_string(['Shortstop', 'idEvent'], e_q_d, 'Event_Shortstop'))
+        queries.append(self.create_query_string(['Right_Field', 'idEvent'], e_q_d, 'Event_Right_Field'))
+        queries.append(self.create_query_string(['Center_Field', 'idEvent'], e_q_d, 'Event_Centre_Field'))
+        queries.append(self.create_query_string(['Left_Field', 'idEvent'], e_q_d, 'Event_Left_Field'))
+        queries.append(self.create_query_string(['Catcher', 'idEvent'], e_q_d, 'Event_Catcher'))
+        queries.append(self.create_query_string(['First_Base', 'idEvent'], e_q_d, 'Event_First_Base'))
+        queries.append(self.create_query_string(['Second_Base', 'idEvent'], e_q_d, 'Event_Second_Base'))
+        queries.append(self.create_query_string(['Third_Base', 'idEvent'], e_q_d, 'Event_Third_Base'))
+        check_status = self.execute_queries(queries)
+        if not check_status: raise UnrecognisableMySQLBehaviour("A player was incorrectly inserted.")
+
     def __duel_in_event_insertion_res(self, event_query_dict, event_driver, db_connection):
 
         # Function Description: The function inserts the required information into the Res_Batter and Res_Pitcher tables.
@@ -320,12 +341,16 @@ class Insert_Driver(Driver):
         #    db_connection (The connection to the database.)
         # Function Throws: Nothing
         # Function Returns: Nothing
-
+        
         self.__event_instance_insertion(e_q_d, event_driver, db_connection)                       # Propogate into the event instance table.
         self.__error_information_insertion(e_q_d, event_driver, db_connection)                    # Propogate into the error information table.
         self.__duel_in_event_insertion(e_q_d, event_driver, db_connection)                        # Propogate into the Batter and Pitcher tables.
         self.__duel_in_event_insertion_res(e_q_d, event_driver, db_connection)                    # Propogate into the Res Batter and Pitcher tables.
-        self.__position_player_insertion(e_q_d, event_driver, db_connection)                      # Propogate the Players who participated in the Event.
+        start = timer()
+        self.__position_player_insertion_temp(e_q_d, event_driver, db_connection)                      # Propogate the Players who participated in the Event.
+        #self.__position_player_insertion(e_q_d, event_driver, db_connection)                      # Propogate the Players who participated in the Event.
+        end = timer()
+        print(end - start)
         self.__base_runner_insertion(e_q_d, event_driver, db_connection)                          # Propogate the Players who were on the Base Paths.
         self.__pinch_related_insertions(e_q_d, event_driver, db_connection)                       # Propogate the Players who were Pinch Runners & Hitters.
         self.__putout_insertions(e_q_d, event_driver, db_connection)                              # Propogate the Putout Fielders in the Event.
@@ -339,6 +364,7 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         error_count = 0
+        i = 0
         event_driver = Event_Driver(self.__db_connection__)                                                   # Structure the data from the file line.
         previous_game_id = None
         for pos_in_file, file_line in enumerate(file_contents):                                               # Processes each file line by line, record failed insertions into query file.
@@ -352,6 +378,8 @@ class Insert_Driver(Driver):
                 self.write_into_log_file(self.log_file.absolute(), ["\n\n Name of File: {}".format(str(file_name)), 
                                         "\n The Reasoning: {}".format(str(err))])
                 error_count += 1
+            i += 1
+            if i > 10: break
         return error_count
 
     def process_event_files(self):
@@ -367,8 +395,9 @@ class Insert_Driver(Driver):
         error_count = 0
         file_count = 0
         self.__empty_tables()                                                                               # Empty out the database.
-        player_driver = self.__initiate_player_driver()                                                     
-        player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        #player_driver = self.__initiate_player_driver()                                                     
+        #player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        start = timer()
         print("Beginning Event file Insertion.")
         self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):
@@ -381,6 +410,10 @@ class Insert_Driver(Driver):
             break
         self.write_into_log_file(self.log_file, "\n Number of Errors: {}".format(error_count))
         self.write_into_log_file(self.log_file, strftime("\n%Y-%m-%d_%H_%M_%S", gmtime()))                           # Log the ending time.
+        end = timer()
+        print(end - start)
+
+from timeit import default_timer as timer
 
 def main():
 
