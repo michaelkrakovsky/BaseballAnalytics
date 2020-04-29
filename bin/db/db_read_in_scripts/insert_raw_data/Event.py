@@ -161,19 +161,7 @@ class Event_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: True or False (True will be turned if there are no warnings or errors. False will be returned otherwise.)
 
-        query = "INSERT IGNORE INTO " + table_name + " ("
-        second_query_half = ") Values ("
-        for i in column_names:
-            query += i + ", "                                 # Add the column names.  
-            try:
-                val = int(event_query_dict[i])
-                second_query_half += str(val) + " , "
-            except ValueError:                                # Must be a string, insert as a string.
-                second_query_half += "\'" + event_query_dict[i] + "\' , "
-        query = query[:-2]                                    # Remove the ending of the string (The comma and space)
-        second_query_half = second_query_half[:-3]
-        query += second_query_half + ");"
-        return self.execute_query(query)       
+        return self.execute_query(self.create_query_string(column_names, event_query_dict, table_name))       
 
     def insert_event_instance(self, event_query_dict):
 
