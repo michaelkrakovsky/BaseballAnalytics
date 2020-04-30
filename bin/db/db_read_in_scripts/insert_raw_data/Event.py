@@ -163,19 +163,6 @@ class Event_Driver(Driver):
 
         return self.execute_query(self.create_query_string(column_names, event_query_dict, table_name))       
 
-    def insert_event_instance(self, event_query_dict):
-
-        # Function Description: Insert the contents from an event query dict into the Event Instance Table. 
-        # Function Parameters: event_query_dict (An event query dictionary object.)
-        # Function Throws: Nothing
-        # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)                 
-        
-        return self.insert_event_dynamic(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
-                                    'Batter_Event_Flag', 'AB_Flag', 'Hit_Value', 'SH_Flag', 'SF_Flag', 'Outs_on_Play', 'Double_Play_Flag', 
-                                    'Triple_Play_Flag', 'RBI_On_Play', 'Wild_Pitch_Flag', 'Passed_Ball_Flag', 'Fielded_By', 'Batted_Ball_Type', 
-                                    'Bunt_Flag', 'Foul_Flag', 'Hit_Location', 'Num_Errors', 'Batter_Dest', 'Play_on_Batter', 'New_Game_Flag', 
-                                    'End_Game_Flag'], event_query_dict, "Event_Instance")
-
     def insert_error_information(self, error_player_pos, error_type, event_id, error_position):
 
         # Function Description: The function inserts content into the Error Information table.
