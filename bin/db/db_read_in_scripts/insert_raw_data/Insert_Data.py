@@ -98,51 +98,45 @@ class Insert_Driver(Driver):
         self.__db_connection__.commit()
         cursor.close() 
 
-    def __assist_insertions(self, event_query_dict, event_driver):
+    def __assist_insertions(self, e_q_d, event_driver):
 
         # Function Description: Insert the data into the Assist Tables. Data will only be
         #    inserted if the data exists thus making its storage dynamic.
-        # Function Parameters: event_query_dict (The event dictionary organising the file line data.),
+        # Function Parameters: e_q_d (The event dictionary organising the file line data.),
         #    event_driver (The event driver that allows the insertion into an event related table.), 
-        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
-        # Function Returns: Nothing
+        # Function Throws: Nothing
+        # Function Returns: queries (The queries that will be inserted into the database.)
 
-        event_status = False                                                        # Anything other than 0 indicates that a Assist was incurred.
-        if int(event_query_dict['Fielder_With_First_Assist']) != 0:                 # Stop propogating if we get a zero.
-            event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_First_Assist'], 1, 'Fielder_Assist_Information')
-            if not event_status: raise UnrecognisableMySQLBehaviour("The First Assist was incorrectly inserted.")
-            if int(event_query_dict['Fielder_With_Second_Assist']) != 0:
-                event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Second_Assist'], 2, 'Fielder_Assist_Information')
-                if not event_status: raise UnrecognisableMySQLBehaviour("The Second Assist was incorrectly inserted.")
-                if int(event_query_dict['Fielder_With_Third_Assist']) != 0: 
-                    event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Third_Assist'], 3, 'Fielder_Assist_Information')
-                    if not event_status: raise UnrecognisableMySQLBehaviour("The Third Assist was incorrectly inserted.")
-                    if int(event_query_dict['Fielder_With_Fourth_Assist']) != 0: 
-                        event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Fourth_Assist'], 4, 'Fielder_Assist_Information')
-                        if not event_status: raise UnrecognisableMySQLBehaviour("The Fourth Assist was incorrectly inserted.")
-                        if int(event_query_dict['Fielder_With_Fifth_Assist']) != 0: 
-                            event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Fifth_Assist'], 5, 'Fielder_Assist_Information')
-                            if not event_status: raise UnrecognisableMySQLBehaviour("The Fifth Assist was incorrectly inserted.")
+        queries = []                                                     # Anything other than 0 indicates that a Assist was incurred.
+        if int(e_q_d['Fielder_With_First_Assist']) != 0:                 # Stop propogating if we get a zero.
+            queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_First_Assist'], 1, 'Fielder_Assist_Information'))
+            if int(e_q_d['Fielder_With_Second_Assist']) != 0:
+                queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_Second_Assist'], 2, 'Fielder_Assist_Information'))
+                if int(e_q_d['Fielder_With_Third_Assist']) != 0: 
+                    queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_Third_Assist'], 3, 'Fielder_Assist_Information'))
+                    if int(e_q_d['Fielder_With_Fourth_Assist']) != 0: 
+                        queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_Fourth_Assist'], 4, 'Fielder_Assist_Information'))
+                        if int(e_q_d['Fielder_With_Fifth_Assist']) != 0: 
+                            queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_Fifth_Assist'], 5, 'Fielder_Assist_Information'))
+        return queries
 
-    def __putout_insertions(self, event_query_dict, event_driver):
+    def __putout_insertions(self, e_q_d, event_driver):
 
         # Function Description: Insert the data into the Putout Tables. Data will only be
         #    inserted if the data exists thus making its storage dynamic.
-        # Function Parameters: event_query_dict (The event dictionary organising the file line data.),
+        # Function Parameters: e_q_d (The event dictionary organising the file line data.),
         #    event_driver (The event driver that allows the insertion into an event related table.), 
-        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
-        # Function Returns: Nothing
+        # Function Throws: Nothing
+        # Function Returns: queries (The queries that will be inserted into the database.)
 
-        event_status = False                                                        # Anything other than 0 indicates that a Putout was incurred.
-        if int(event_query_dict['Fielder_With_First_Putout']) != 0:                 # Stop propogating if we get a zero.
-            event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_First_Putout'], 1, 'Fielder_Putout_Information')
-            if not event_status: raise UnrecognisableMySQLBehaviour("The First Putout was incorrectly inserted.")
-            if int(event_query_dict['Fielder_With_Second_Putout']) != 0:
-                event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Second_Putout'], 2, 'Fielder_Putout_Information')
-                if not event_status: raise UnrecognisableMySQLBehaviour("The Second Putout was incorrectly inserted.")
-                if int(event_query_dict['Fielder_With_Third_Putout']) != 0: 
-                    event_status = event_driver.insert_fielding_instance(event_query_dict['idEvent'], event_query_dict['Fielder_With_Third_Putout'], 3, 'Fielder_Putout_Information')
-                    if not event_status: raise UnrecognisableMySQLBehaviour("The Third Putout was incorrectly inserted.")
+        queries = []                                                     # Anything other than 0 indicates that a Putout was incurred.
+        if int(e_q_d['Fielder_With_First_Putout']) != 0:                 # Stop propogating if we get a zero.
+            queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_First_Putout'], 1, 'Fielder_Putout_Information'))
+            if int(e_q_d['Fielder_With_Second_Putout']) != 0:
+                queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_Second_Putout'], 2, 'Fielder_Putout_Information'))
+                if int(e_q_d['Fielder_With_Third_Putout']) != 0: 
+                    queries.append(event_driver.insert_fielding_instance(e_q_d['idEvent'], e_q_d['Fielder_With_Third_Putout'], 3, 'Fielder_Putout_Information'))
+        return queries
 
     def __pinch_related_insertions(self, e_q_d):
 
@@ -232,25 +226,23 @@ class Insert_Driver(Driver):
         queries.append(self.create_query_string(['Res_Pitcher_Name', 'Res_Pitcher_Hand', 'idEvent'], e_q_d, 'Res_Pitcher_Information'))
         return queries
 
-    def __error_information_insertion(self, event_query_dict, event_driver):
+    def __error_information_insertion(self, e_q_d, event_driver):
 
         # Function Description: Insert the data into the Error Information Pitcher tables. Data will only be
         #    inserted if the data exists thus making its storage dynamic. There are three tables related to pitcher errors.
-        # Function Parameters: event_query_dict (The event dictionary organising the file line data.),
+        # Function Parameters: e_q_d (The event dictionary organising the file line data.),
         #    event_driver (The event driver that allows the insertion into an event related table.), 
-        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unexpected.)
-        # Function Returns: Nothing
+        # Function Throws:
+        # Function Returns: queries (The queries to insert into the database.)
 
-        event_status = False                                                        # Anything other than 0 indicates that an error was incurred.
-        if int(event_query_dict['1st_Error_Player']) != 0:                          # Stop propogating if we get a zero.
-            event_status = event_driver.insert_error_information(event_query_dict['1st_Error_Player'], event_query_dict['1st_Error_Type'], event_query_dict['idEvent'], 1)
-            if not event_status: raise UnrecognisableMySQLBehaviour("The 1st Error Player was incorrectly inserted.")
-            if int(event_query_dict['2nd_Error_Player']) != 0:
-                event_status = event_driver.insert_error_information(event_query_dict['2nd_Error_Player'], event_query_dict['2nd_Error_Type'], event_query_dict['idEvent'], 2)
-                if not event_status: raise UnrecognisableMySQLBehaviour("The 2nd Error Player was incorrectly inserted.")
-                if int(event_query_dict['3rd_Error_Player']) != 0: 
-                    event_status = event_driver.insert_error_information(event_query_dict['3rd_Error_Player'], event_query_dict['3rd_Error_Type'], event_query_dict['idEvent'], 3)
-                    if not event_status: raise UnrecognisableMySQLBehaviour("The 3rd Error Player was incorrectly inserted.")
+        queries = []                                                     # Anything other than 0 indicates that an error was incurred.
+        if int(e_q_d['1st_Error_Player']) != 0:                          # Stop propogating if we get a zero.
+            queries.append(event_driver.build_error_information(e_q_d['1st_Error_Player'], e_q_d['1st_Error_Type'], e_q_d['idEvent'], 1))
+            if int(e_q_d['2nd_Error_Player']) != 0:
+                queries.append(event_driver.build_error_information(e_q_d['2nd_Error_Player'], e_q_d['2nd_Error_Type'], e_q_d['idEvent'], 2))
+                if int(e_q_d['3rd_Error_Player']) != 0: 
+                    queries.append(event_driver.build_error_information(e_q_d['3rd_Error_Player'], e_q_d['3rd_Error_Type'], e_q_d['idEvent'], 3))
+        return queries
 
     def __game_table_insertion(self, event_query_dict, db_connection):
 
@@ -264,20 +256,18 @@ class Insert_Driver(Driver):
         check_game = game_driver.insert_game(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])           # Insert the game if it is not found.
         if check_game == False: raise UnrecognisableMySQLBehaviour("Unable to insert the game into the table after the game was not found within the table.")
 
-    def __event_instance_insertion(self, event_query_dict, event_driver):
+    def __event_instance_insertion(self, e_q_d):
 
         # Function Description: Handle the data insertion into the Event Instance table.
         # Function Parameters: event_query_dict (An event query dictionary.),
-        #     event_driver (The event driver to fulfill executions.) 
-        # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the event query was unsuccessful.)
-        # Function Returns: The query to insert into the event table.
+        # Function Throws: Nothing
+        # Function Returns: The query to insert into the event table. (Ensure it is a list as to be added properly to the query list.)
 
-        check_status = event_driver.insert_event_dynamic(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
-                                                        'Batter_Event_Flag', 'AB_Flag', 'Hit_Value', 'SH_Flag', 'SF_Flag', 'Outs_on_Play', 'Double_Play_Flag', 
-                                                        'Triple_Play_Flag', 'RBI_On_Play', 'Wild_Pitch_Flag', 'Passed_Ball_Flag', 'Fielded_By', 'Batted_Ball_Type', 
-                                                        'Bunt_Flag', 'Foul_Flag', 'Hit_Location', 'Num_Errors', 'Batter_Dest', 'Play_on_Batter', 'New_Game_Flag', 
-                                                        'End_Game_Flag'], event_query_dict, "Event_Instance")
-        if not check_status: raise UnrecognisableMySQLBehaviour("The insertion into the event table was unsuccessful.")
+        return [self.create_query_string(['idEvent', 'Game_ID', 'Inning', 'Outs', 'Vis_Score', 'Home_Score','Event_Text', 'Event_Type', 
+                                    'Batter_Event_Flag', 'AB_Flag', 'Hit_Value', 'SH_Flag', 'SF_Flag', 'Outs_on_Play', 'Double_Play_Flag', 
+                                    'Triple_Play_Flag', 'RBI_On_Play', 'Wild_Pitch_Flag', 'Passed_Ball_Flag', 'Fielded_By', 'Batted_Ball_Type', 
+                                    'Bunt_Flag', 'Foul_Flag', 'Hit_Location', 'Num_Errors', 'Batter_Dest', 'Play_on_Batter', 'New_Game_Flag', 
+                                    'End_Game_Flag'], e_q_d, "Event_Instance")]
 
     def __propogate_line_into_tables(self, e_q_d, event_driver, db_connection):
 
@@ -289,16 +279,16 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
         
         queries = []
-        self.__event_instance_insertion(e_q_d, event_driver)            # Propogate into the event instance table.
-        self.__error_information_insertion(e_q_d, event_driver)         # Propogate into the error information table.
-        queries += self.__duel_in_event_insertion(e_q_d)                # Propogate into the Batter and Pitcher tables.
-        queries += self.__position_player_insertion_queries(e_q_d)      # Propogate the Players who participated in the Event.
-        queries += self.__base_runner_insertion(e_q_d)                  # Propogate the Players who were on the Base Paths.
-        queries += self.__pinch_related_insertions(e_q_d)               # Propogate the Players who were Pinch Runners & Hitters.
-        self.__putout_insertions(e_q_d, event_driver)                   # Propogate the Putout Fielders in the Event.
-        self.__assist_insertions(e_q_d, event_driver)                   # Propogate the Assist Fielders in the Event.
-        check_status = self.execute_queries(queries)                    # Execute the queries that were built.
-        if not check_status: raise UnrecognisableMySQLBehaviour("A query in propogate line into tables was incorrectly inserted.")
+        queries += self.__event_instance_insertion(e_q_d)                   # Propogate into the event instance table.
+        queries += self.__error_information_insertion(e_q_d, event_driver)  # Propogate into the error information table.
+        queries += self.__duel_in_event_insertion(e_q_d)                    # Propogate into the Batter and Pitcher tables.
+        queries += self.__position_player_insertion_queries(e_q_d)          # Propogate the Players who participated in the Event.
+        queries += self.__base_runner_insertion(e_q_d)                      # Propogate the Players who were on the Base Paths.
+        queries += self.__pinch_related_insertions(e_q_d)                   # Propogate the Players who were Pinch Runners & Hitters.
+        queries += self.__putout_insertions(e_q_d, event_driver)            # Propogate the Putout Fielders in the Event.
+        queries += self.__assist_insertions(e_q_d, event_driver)            # Propogate the Assist Fielders in the Event.
+        check_status = self.execute_queries(queries)                        # Execute the queries that were built.
+        if not check_status: raise UnrecognisableMySQLBehaviour("A query while propogate lines into tables was incorrectly inserted.")
 
     def __process_event_file(self, file_name, file_contents):
 

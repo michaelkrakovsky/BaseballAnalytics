@@ -163,17 +163,16 @@ class Event_Driver(Driver):
 
         return self.execute_query(self.create_query_string(column_names, event_query_dict, table_name))       
 
-    def insert_error_information(self, error_player_pos, error_type, event_id, error_position):
+    def build_error_information(self, error_player_pos, error_type, event_id, error_position):
 
         # Function Description: The function inserts content into the Error Information table.
         # Function Parameters: error_player_pos (The positional number of the player who made the error (i.e. 1-9)), 
         #    error_type (The type of error that was made), event_id (The id of the event), 
         #    error_position (The position in the event the error was incurred. (1st, 2nd, or 3rd)) 
         # Function Throws: Nothing
-        # Function Returns: True (If a successful query has taken place.) False (If the query did not execute cleanly.)
+        # Function Returns: The query that will insert the error information.
         
-        query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}')".format(error_player_pos, event_id, error_type, error_position)
-        return self.execute_query(query)
+        return "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}');".format(error_player_pos, event_id, error_type, error_position)
 
     def insert_fielding_instance(self, event_id, fielder_pos, putout_number, table_name):
 
@@ -182,16 +181,15 @@ class Event_Driver(Driver):
         #     fielder_pos (The position of the fielder (1-9) who made the play.), 
         #     putout_number (The putout number within the event (1-3).), 
         #     table_name (The table to insert the content into. (Either assist or putout.))
-        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error if any of the queries are unsuccessful.)
-        # Function Returns: Nothing
+        # Function Throws: ValueError (The error is thrown if the table name is incorrect.)
+        # Function Returns: The query will be later inserted into the data base.
 
         if table_name == 'Fielder_Assist_Information':
-            query = "INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) VALUES ('{}', '{}', '{}')".format(event_id, fielder_pos, putout_number)
+            return "INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) VALUES ('{}', '{}', '{}');".format(event_id, fielder_pos, putout_number)
         elif table_name == 'Fielder_Putout_Information':
-            query = "INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) VALUES ('{}', '{}', '{}')".format(event_id, fielder_pos, putout_number)
+            return "INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) VALUES ('{}', '{}', '{}');".format(event_id, fielder_pos, putout_number)
         else:
-            raise ValueError("The table name entered into the table was incorrect.")
-        return self.execute_query(query)
+            raise ValueError("The table name entered was incorrect.") 
 
     def insert_player_from_event(self, column_names, player_driver, event_query_dict, table_name, column_of_player_name):
 
