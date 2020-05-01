@@ -11,8 +11,10 @@
 from pathlib import Path
 from os import listdir, path
 from Driver_Exceptions import UnrecognisableMySQLBehaviour
+from timeit import default_timer as timer
 from Driver import Driver
 from Player import Player_Driver
+from Batch_Handler import Batch_Driver
 from Event import Event_Query_Dict, Event_Driver
 from Game import Game_Driver
 from pickle import load                               # Provide pickle capabilities
@@ -244,18 +246,6 @@ class Insert_Driver(Driver):
                     queries.append(event_driver.build_error_information(e_q_d['3rd_Error_Player'], e_q_d['3rd_Error_Type'], e_q_d['idEvent'], 3))
         return queries
 
-    def __game_table_insertion(self, event_query_dict, db_connection):
-
-        # Function Description: Given a line from the text file, propogate the query throughout the entire database.
-        # Function Parameters: event_query_dict (An event query dictionary contianing the information to query the file line.), 
-        #   db_connection (The connection to the database.)
-        # Function Throws: UnrecognisableMySQLBehaviour (Throw the error when the query was not successfully executed.)
-        # Function Returns: Nothing
-
-        game_driver = Game_Driver(db_connection)
-        check_game = game_driver.insert_game(event_query_dict['Game_ID'], event_query_dict['Visiting_Team'])           # Insert the game if it is not found.
-        if check_game == False: raise UnrecognisableMySQLBehaviour("Unable to insert the game into the table after the game was not found within the table.")
-
     def __event_instance_insertion(self, e_q_d):
 
         # Function Description: Handle the data insertion into the Event Instance table.
@@ -269,50 +259,42 @@ class Insert_Driver(Driver):
                                     'Bunt_Flag', 'Foul_Flag', 'Hit_Location', 'Num_Errors', 'Batter_Dest', 'Play_on_Batter', 'New_Game_Flag', 
                                     'End_Game_Flag'], e_q_d, "Event_Instance")]
 
-    def __propogate_line_into_tables(self, e_q_d, event_driver, db_connection):
+    def __propogate_line_into_tables(self, e_q_d, event_driver, batch_handler):
 
         # Function Description: Given a line from the text file, propogate the query throughout the entire database.
         # Function Parameters: e_q_d (The event query dictionary to propogate throughout the tables.), 
         #    event_driver (An existing event driver to utilise the capailitites in that package.)
-        #    db_connection (The connection to the database.)
+        #    batch_handler (The mechanism to handle batch requests.)
         # Function Throws: Nothing
         # Function Returns: Nothing
         
-        queries = []
-        queries += self.__event_instance_insertion(e_q_d)                   # Propogate into the event instance table.
-        queries += self.__error_information_insertion(e_q_d, event_driver)  # Propogate into the error information table.
-        queries += self.__duel_in_event_insertion(e_q_d)                    # Propogate into the Batter and Pitcher tables.
-        queries += self.__position_player_insertion_queries(e_q_d)          # Propogate the Players who participated in the Event.
-        queries += self.__base_runner_insertion(e_q_d)                      # Propogate the Players who were on the Base Paths.
-        queries += self.__pinch_related_insertions(e_q_d)                   # Propogate the Players who were Pinch Runners & Hitters.
-        queries += self.__putout_insertions(e_q_d, event_driver)            # Propogate the Putout Fielders in the Event.
-        queries += self.__assist_insertions(e_q_d, event_driver)            # Propogate the Assist Fielders in the Event.
-        check_status = self.execute_queries(queries)                        # Execute the queries that were built.
-        if not check_status: raise UnrecognisableMySQLBehaviour("A query while propogate lines into tables was incorrectly inserted.")
+        batch_handler.add_query('Event_Instance', self.__event_instance_insertion(e_q_d))                         # Propogate into the event instance table.
+        batch_handler.add_query('Error_Information', self.__error_information_insertion(e_q_d, event_driver))     # Propogate into the error information table.
+        batch_handler.add_query('Duel_Tables', self.__duel_in_event_insertion(e_q_d))                             # Propogate into the Batter and Pitcher tables.
+        batch_handler.add_query('Positional_Players', self.__position_player_insertion_queries(e_q_d))            # Propogate the Players who participated in the Event.
+        batch_handler.add_query('Base_Runners', self.__base_runner_insertion(e_q_d))                              # Propogate the Players who were on the Base Paths.
+        batch_handler.add_query('Pinch_Tables', self.__pinch_related_insertions(e_q_d))                           # Propogate the Players who were Pinch Runners & Hitters.
+        batch_handler.add_query('Putout_Tables', self.__putout_insertions(e_q_d, event_driver))                   # Propogate the Putout Fielders in the Event.
+        batch_handler.add_query('Assist_Tables', self.__assist_insertions(e_q_d, event_driver))                   # Propogate the Assist Fielders in the Event.
 
-    def __process_event_file(self, file_name, file_contents):
+    def __process_event_file(self, file_contents):
 
         # Function Description: The function processes the content from a single file.
-        # Function Parameters: file_name (The name of the file.), file_contents (The contents from the event file.)
+        # Function Parameters: file_contents (The contents from the event file.)
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        error_count = 0
+        game_driver = Game_Driver(self.__db_connection__)
+        batch_driver = Batch_Driver(self.__db_connection__, 500)
         event_driver = Event_Driver(self.__db_connection__)                                                   # Structure the data from the file line.
         previous_game_id = None
         for pos_in_file, file_line in enumerate(file_contents):                                               # Processes each file line by line, record failed insertions into query file.
             e_q_d = Event_Query_Dict(file_line, pos_in_file)
-            if previous_game_id != e_q_d.event_query_dict['Game_ID']:                                         # Check whether to propogate into the game table.
-                self.__game_table_insertion(e_q_d.event_query_dict, self.__db_connection__)                           
-            previous_game_id = e_q_d.event_query_dict['Game_ID']
-            try:
-                self.__propogate_line_into_tables(e_q_d.event_query_dict, event_driver, self.__db_connection__)
-            except UnrecognisableMySQLBehaviour as err:
-                self.write_into_log_file(self.log_file.absolute(), ["\n\n Name of File: {}".format(str(file_name)), 
-                                        "\n The Reasoning: {}".format(str(err))])
-                error_count += 1
-            if pos_in_file > 50: break
-        return error_count
+            if previous_game_id != e_q_d.event_query_dict['Game_ID']:                                         # Insert a new game if necessary.
+                batch_driver.add_query('Game_Day', game_driver.insert_game(e_q_d.event_query_dict['Game_ID'], e_q_d.event_query_dict['Visiting_Team']))
+                previous_game_id = e_q_d.event_query_dict['Game_ID']
+            self.__propogate_line_into_tables(e_q_d.event_query_dict, event_driver, batch_driver)
+        batch_driver.empty_batch_driver()             # Empty the remaining batch driver as not to lose the queued queries.
 
     def process_event_files(self):
 
@@ -324,7 +306,6 @@ class Insert_Driver(Driver):
         
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
-        error_count = 0
         self.__empty_tables()                                                                               # Empty out the database.
         #player_driver = self.__initiate_player_driver()                                                     
         #player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
@@ -334,16 +315,12 @@ class Insert_Driver(Driver):
         for num, file_name in enumerate(listdir(path_to_event_files)):
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
-            error_count += self.__process_event_file(path_to_event_files / file_name, event_file)
+            self.__process_event_file(event_file)
             event_file.close()
             self.print_progress_bar(num + 1, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
-            break
-        self.write_into_log_file(self.log_file, "\n Number of Errors: {}".format(error_count))
         self.write_into_log_file(self.log_file, strftime("\n%Y-%m-%d_%H_%M_%S", gmtime()))                           # Log the ending time.
         end = timer()
-        print(end - start)
-
-from timeit import default_timer as timer
+        print("Total time was: " + str(end - start))
 
 def main():
 
