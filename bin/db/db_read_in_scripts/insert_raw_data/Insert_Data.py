@@ -285,7 +285,7 @@ class Insert_Driver(Driver):
         # Function Returns: Nothing
 
         game_driver = Game_Driver(self.__db_connection__)
-        batch_driver = Batch_Driver(self.__db_connection__, 500)
+        batch_driver = Batch_Driver(self.__db_connection__, 10000)
         event_driver = Event_Driver(self.__db_connection__)                                                   # Structure the data from the file line.
         previous_game_id = None
         for pos_in_file, file_line in enumerate(file_contents):                                               # Processes each file line by line, record failed insertions into query file.

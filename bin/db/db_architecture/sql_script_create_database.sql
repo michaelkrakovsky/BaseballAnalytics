@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Event_Instance` (
   `Outs` INT UNSIGNED NOT NULL,
   `Vis_Score` INT NOT NULL,
   `Home_Score` INT NOT NULL,
-  `Event_Text` VARCHAR(45) NOT NULL,
+  `Event_Text` VARCHAR(100) NOT NULL,
   `Event_Type` INT NOT NULL,
   `Batter_Event_Flag` VARCHAR(1) NOT NULL,
   `AB_Flag` VARCHAR(1) NOT NULL,
