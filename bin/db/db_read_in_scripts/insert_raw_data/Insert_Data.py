@@ -307,12 +307,14 @@ class Insert_Driver(Driver):
         path_to_event_files = self.path_to_raw_data / '1990_2019_Event_Files'
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
         self.__empty_tables()                                                                               # Empty out the database.
-        #player_driver = self.__initiate_player_driver()                                                     
-        #player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
         start = timer()
+        player_driver = self.__initiate_player_driver()                                                     
+        player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        
         print("Beginning Event file Insertion.")
         self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):
+            break
             if not file_name.endswith('.txt'): raise ValueError("There should only be .txt files in this folder. The file processed was {}.".format(file_name))
             event_file = open(path_to_event_files / file_name, 'r') 
             self.__process_event_file(event_file)

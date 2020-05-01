@@ -113,8 +113,17 @@ class Player_Driver(Driver):
         # Funtion Returns: query (The query to be inserted into the database.)
 
         analyse_player = self.__player_list__[player_Id]
-        query = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.last_name + "\', \'" + analyse_player.first_name + "\', \'" + analyse_player.player_debut + "\')"
-        return query
+        return "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) values (\'" + player_Id + "\', \'" + analyse_player.last_name + "\', \'" + analyse_player.first_name + "\', \'" + analyse_player.player_debut + "\')"
+
+    def __build_query_tuple(self, player_Id):
+
+        # Function Description: Build the query tuple that will be used to insert into the database.
+        # Function Parameters: player_Id (The player Id to identify the other details of the player.)
+        # Function Throws: None
+        # Function Returns: The tuple readied to be inserted into the database. (player_id, Last_Name, First_Name, Player_Debut)
+
+        analyse_player = self.__player_list__[player_Id]
+        return (player_Id, analyse_player.last_name, analyse_player.first_name, analyse_player.player_debut)
 
     def player_batch_insertion(self):
 
@@ -123,13 +132,18 @@ class Player_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        num_players = len(self.__player_list__)
         print("Beginning to Insert Players.")
-        self.print_progress_bar(0, num_players, prefix = 'Player Insertion:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress.
-        for num, player_id in enumerate(self.__player_list__):
-            player_status = self.insert_player(player_id)
-            self.print_progress_bar(num, num_players, prefix = 'Player Insertion:', suffix = 'Complete', length = 50) 
-            if not player_status: raise UnrecognisableMySQLBehaviour("There was an error in the player batch insertion.")
+        stmt = "INSERT IGNORE INTO player_information (player_id, Last_Name, First_Name, Player_Debut) Values (%s, %s, %s, %s)"
+        data = []
+        status = True
+        for count, player in enumerate(self.__player_list__):
+            data.append(self.__build_query_tuple(player))
+            if count > 10000:                                           # Set the batch size to 10000. (i.e. Insert after every 10000 rows.)
+                status = self.execute_many(stmt, data)
+                if not status: raise UnrecognisableMySQLBehaviour("The players were not properly inserted.")
+                data = []
+        print("The Players were properly inserted.")
+        if len(data) != 0: self.execute_many(stmt, data)
 
     def check_and_insert_player(self, player_Id):
 
