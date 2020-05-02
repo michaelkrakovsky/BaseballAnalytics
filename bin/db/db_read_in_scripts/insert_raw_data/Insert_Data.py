@@ -258,7 +258,7 @@ class Insert_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES (%s, %s, %s, %s)"                                                     
+        query = "INSERT INTO Error_Information (Error_Player, Error_Type, idEvent, Error_Position) VALUES (%s, %s, %s, %s)"                                                     
         if int(e_q_d.event_query_dict['1st_Error_Player']) != 0:                                                                  # Anything other than 0 indicates that an error was incurred.
             batch_handler.add_query(query, (e_q_d.event_query_dict['1st_Error_Player'], e_q_d.event_query_dict['1st_Error_Type'], e_q_d.event_query_dict['idEvent'], 1))
             if int(e_q_d.event_query_dict['2nd_Error_Player']) != 0:
@@ -345,7 +345,6 @@ class Insert_Driver(Driver):
             self.__process_event_file(event_file)
             event_file.close()
             self.print_progress_bar(num + 1, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
-            break
         self.write_into_log_file(self.log_file, strftime("\n%Y-%m-%d_%H_%M_%S", gmtime()))                           # Log the ending time.
         end = timer()
         print("Total time was: " + str(end - start))
