@@ -109,21 +109,21 @@ class Insert_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        if int(e_q_d['Fielder_With_First_Assist']) != 0:                 # Stop propogating if we get a zero.
+        if int(e_q_d.event_query_dict['Fielder_With_First_Assist']) != 0:                 # Stop propogating if we get a zero.
             query = """INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) Values (%s, %s, %s)"""
-            batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_First_Assist'], 1))
-            if int(e_q_d['Fielder_With_Second_Assist']) != 0:
+            batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_First_Assist'], 1))
+            if int(e_q_d.event_query_dict['Fielder_With_Second_Assist']) != 0:
                 query = """INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) Values (%s, %s, %s)"""
-                batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_Second_Assist'], 2))
-                if int(e_q_d['Fielder_With_Third_Assist']) != 0:
+                batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_Second_Assist'], 2))
+                if int(e_q_d.event_query_dict['Fielder_With_Third_Assist']) != 0:
                     query = """INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) Values (%s, %s, %s)"""
-                    batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_Third_Assist'], 3)) 
-                    if int(e_q_d['Fielder_With_Fourth_Assist']) != 0:
+                    batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_Third_Assist'], 3)) 
+                    if int(e_q_d.event_query_dict['Fielder_With_Fourth_Assist']) != 0:
                         query = """INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) Values (%s, %s, %s)"""
-                        batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_Fourth_Assist'], 4)) 
-                        if int(e_q_d['Fielder_With_Fifth_Assist']) != 0: 
+                        batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_Fourth_Assist'], 4)) 
+                        if int(e_q_d.event_query_dict['Fielder_With_Fifth_Assist']) != 0: 
                             query = """INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) Values (%s, %s, %s)"""
-                            batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_Fifth_Assist'], 5)) 
+                            batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_Fifth_Assist'], 5)) 
 
     def __putout_insertions(self, e_q_d, batch_handler):
 
@@ -134,15 +134,15 @@ class Insert_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        if int(e_q_d['Fielder_With_First_Putout']) != 0:                 # Stop propogating if we get a zero.
+        if int(e_q_d.event_query_dict['Fielder_With_First_Putout']) != 0:                 # Stop propogating if we get a zero.
             query = """INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) Values (%s, %s, %s)"""
-            batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_First_Putout'], 1))
-            if int(e_q_d['Fielder_With_Second_Putout']) != 0:
+            batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_First_Putout'], 1))
+            if int(e_q_d.event_query_dict['Fielder_With_Second_Putout']) != 0:
                 query = """INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) Values (%s, %s, %s)"""
-                batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_Second_Putout'], 2))
-                if int(e_q_d['Fielder_With_Third_Putout']) != 0:
+                batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_Second_Putout'], 2))
+                if int(e_q_d.event_query_dict['Fielder_With_Third_Putout']) != 0:
                     query = """INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) Values (%s, %s, %s)"""
-                    batch_handler.add_query(query, (e_q_d['idEvent'], e_q_d['Fielder_With_Third_Putout'], 3))
+                    batch_handler.add_query(query, (e_q_d.event_query_dict['idEvent'], e_q_d.event_query_dict['Fielder_With_Third_Putout'], 3))
         
     def __pinch_related_insertions(self, e_q_d, batch_handler):
 
@@ -152,16 +152,16 @@ class Insert_Driver(Driver):
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was incorrectly inserted.)
         # Function Returns: Nothing
 
-        if not e_q_d['Runner_Removed_For_Pinch_Runner_On_1st'] == '':                                        # Do not attempt an insertion if there is no player to insert.
+        if not e_q_d.event_query_dict['Runner_Removed_For_Pinch_Runner_On_1st'] == '':                                        # Do not attempt an insertion if there is no player to insert.
             query = """INSERT INTO Pinch_Runner_Removed_1st (Runner_Removed_For_Pinch_Runner_On_1st, idEvent) Values (%s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Runner_Removed_For_Pinch_Runner_On_1st', 'idEvent']))
-        if not e_q_d['Runner_Removed_For_Pinch_Runner_On_2nd'] == '':
+        if not e_q_d.event_query_dict['Runner_Removed_For_Pinch_Runner_On_2nd'] == '':
             query = """INSERT INTO Pinch_Runner_Removed_2nd (Runner_Removed_For_Pinch_Runner_On_2nd, idEvent) Values (%s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Runner_Removed_For_Pinch_Runner_On_2nd', 'idEvent']))
-        if not e_q_d['Runner_Removed_For_Pinch_Runner_On_3rd'] == '':
+        if not e_q_d.event_query_dict['Runner_Removed_For_Pinch_Runner_On_3rd'] == '':
             query = """INSERT INTO Pinch_Runner_Removed_3rd (Runner_Removed_For_Pinch_Runner_On_3rd, idEvent) Values (%s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Runner_Removed_For_Pinch_Runner_On_3rd', 'idEvent']))
-        if not e_q_d['Batter_Removed_For_Pinch_Hitter'] == '': 
+        if not e_q_d.event_query_dict['Batter_Removed_For_Pinch_Hitter'] == '': 
             query = """INSERT INTO Batter_Removed_For_Pinch_Hitter (Batter_Removed_For_Pinch_Hitter, Position_of_Batter_removed_for_Pinch_Hitter, idEvent) Values (%s, %s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Batter_Removed_For_Pinch_Hitter', 'Position_of_Batter_removed_for_Pinch_Hitter', 'idEvent']))                                                            
             
@@ -173,30 +173,30 @@ class Insert_Driver(Driver):
         # Function Throws: UnrecognisableMySQLBehaviour (The error is thrown when the query was incorrectly inserted.)
         # Function Returns: Nothing
 
-        if not e_q_d['Responsible_Pitcher_For_Runner_On_1st'] == '':                                              # Do not attempt an insertion if there is no player to insert.
+        if not e_q_d.event_query_dict['Responsible_Pitcher_For_Runner_On_1st'] == '':                                              # Do not attempt an insertion if there is no player to insert.
             query = """INSERT INTO Responsible_Pitcher_For_First (Responsible_Pitcher_For_Runner_On_1st, idEvent) Values (%s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Responsible_Pitcher_For_Runner_On_1st', 'idEvent']))
-        if not e_q_d['Responsible_Pitcher_For_Runner_On_2nd'] == '':
+        if not e_q_d.event_query_dict['Responsible_Pitcher_For_Runner_On_2nd'] == '':
             query = """INSERT INTO Responsible_Pitcher_For_Second (Responsible_Pitcher_For_Runner_On_2nd, idEvent) Values (%s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Responsible_Pitcher_For_Runner_On_2nd', 'idEvent']))
-        if not e_q_d['Responsible_Pitcher_For_Runner_On_3rd'] == '':
+        if not e_q_d.event_query_dict['Responsible_Pitcher_For_Runner_On_3rd'] == '':
             query = """INSERT INTO Responsible_Pitcher_For_Third (Responsible_Pitcher_For_Runner_On_3rd, idEvent) Values (%s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Responsible_Pitcher_For_Runner_On_3rd', 'idEvent']))               
-        if not e_q_d['First_Runner'] == '':
+        if not e_q_d.event_query_dict['First_Runner'] == '':
             query = """INSERT INTO Runner_on_First_Details (First_Runner, Runner_On_1st_Dest, SB_Runner_On_1st_Flag, 
                     CS_Runner_On_1st_Flag, PO_For_Runner_On_1st_Flag, Play_On_Runner_On_1st, Pinch_Runner_On_1st, idEvent) 
                     Values (%s, %s, %s, %s, %s, %s, %s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['First_Runner', 'Runner_On_1st_Dest', 'SB_Runner_On_1st_Flag', 
                                     'CS_Runner_On_1st_Flag', 'PO_For_Runner_On_1st_Flag', 'Play_On_Runner_On_1st', 
                                     'Pinch_Runner_On_1st', 'idEvent']))
-        if not e_q_d['Second_Runner'] == '':
+        if not e_q_d.event_query_dict['Second_Runner'] == '':
             query = """INSERT INTO Runner_on_Second_Details (Second_Runner, Runner_On_2nd_Dest, SB_Runner_On_2nd_Flag, 
                     CS_Runner_On_2nd_Flag, PO_For_Runner_On_2nd_Flag, Play_On_Runner_On_2nd, Pinch_Runner_On_2nd, idEvent) 
                     Values (%s, %s, %s, %s, %s, %s, %s, %s)"""
             batch_handler.add_query(query, e_q_d.get_values(['Second_Runner', 'Runner_On_2nd_Dest', 'SB_Runner_On_2nd_Flag', 
                                     'CS_Runner_On_2nd_Flag', 'PO_For_Runner_On_2nd_Flag', 'Play_On_Runner_On_2nd', 
                                     'Pinch_Runner_On_2nd', 'idEvent']))
-        if not e_q_d['Third_Runner'] == '':
+        if not e_q_d.event_query_dict['Third_Runner'] == '':
             query = """INSERT INTO Runner_on_Third_Details (Third_Runner, Runner_On_3rd_Dest, SB_Runner_On_3rd_Flag, 
                     CS_Runner_On_3rd_Flag, PO_For_Runner_On_3rd_Flag, Play_On_Runner_On_3rd, Pinch_Runner_On_3rd, idEvent) 
                     Values (%s, %s, %s, %s, %s, %s, %s, %s)"""
@@ -258,13 +258,13 @@ class Insert_Driver(Driver):
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES (%s, %s, %s, %s, %s)"                                                     
-        if int(e_q_d['1st_Error_Player']) != 0:                                                                  # Anything other than 0 indicates that an error was incurred.
-            batch_handler.add_query(query, e_q_d['1st_Error_Player'], e_q_d['1st_Error_Type'], e_q_d['idEvent'], 1)
-            if int(e_q_d['2nd_Error_Player']) != 0:
-                batch_handler.add_query(query, e_q_d['2nd_Error_Player'], e_q_d['2nd_Error_Type'], e_q_d['idEvent'], 2)
-                if int(e_q_d['3rd_Error_Player']) != 0:
-                    batch_handler.add_query(query, e_q_d['3rd_Error_Player'], e_q_d['3rd_Error_Type'], e_q_d['idEvent'], 3) 
+        query = "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES (%s, %s, %s, %s)"                                                     
+        if int(e_q_d.event_query_dict['1st_Error_Player']) != 0:                                                                  # Anything other than 0 indicates that an error was incurred.
+            batch_handler.add_query(query, (e_q_d.event_query_dict['1st_Error_Player'], e_q_d.event_query_dict['1st_Error_Type'], e_q_d.event_query_dict['idEvent'], 1))
+            if int(e_q_d.event_query_dict['2nd_Error_Player']) != 0:
+                batch_handler.add_query(query, (e_q_d.event_query_dict['2nd_Error_Player'], e_q_d.event_query_dict['2nd_Error_Type'], e_q_d.event_query_dict['idEvent'], 2))
+                if int(e_q_d.event_query_dict['3rd_Error_Player']) != 0:
+                    batch_handler.add_query(query, (e_q_d.event_query_dict['3rd_Error_Player'], e_q_d.event_query_dict['3rd_Error_Type'], e_q_d.event_query_dict['idEvent'], 3)) 
 
     def __event_instance_insertion(self, e_q_d, batch_handler):
 
@@ -320,7 +320,7 @@ class Insert_Driver(Driver):
                 game_query = "INSERT INTO Game_Day (Visiting_Team, Home_Team, Date, Game_ID, NumGameInDay) VALUES (%s, %s, %s, %s, %s)"   
                 batch_driver.add_query(game_query, game_driver.insert_game(e_q_d.event_query_dict['Game_ID'], e_q_d.event_query_dict['Visiting_Team']))
                 previous_game_id = e_q_d.event_query_dict['Game_ID']
-            self.__propogate_line_into_tables(e_q_d.event_query_dict, event_driver, batch_driver)
+            self.__propogate_line_into_tables(e_q_d, event_driver, batch_driver)
         batch_driver.empty_batch_driver()             # Empty the remaining batch driver as not to lose the queued queries.
 
     def process_event_files(self):
@@ -335,8 +335,8 @@ class Insert_Driver(Driver):
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
         self.__empty_tables()                                                                               # Empty out the database.
         start = timer()
-        player_driver = self.__initiate_player_driver()                                                     
-        player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        #player_driver = self.__initiate_player_driver()                                                     
+        #player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
         print("Beginning Event file Insertion.")
         self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):
