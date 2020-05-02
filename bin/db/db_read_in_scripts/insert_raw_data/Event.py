@@ -140,6 +140,18 @@ class Event_Query_Dict:
         eventDict['Fielder_With_Fifth_Assist'] = splitString[95]                     # Table Name: fielder_assist_information    
         return eventDict
 
+    def get_values(self, col_names):
+
+        # Function Description: Given the column names of an e_q_d, return the values in its respective order as a tuple.
+        # Function Parameters: col_names (The names of the columns within the e_q_d.)
+        # Function Throws: Nothing
+        # Function Returns: The values composed in a tuple.
+
+        vals = []
+        for col in col_names:
+            vals.append(self.event_query_dict[col])
+        return tuple(vals)  
+
 class Event_Driver(Driver):
 
     def __init__(self, db_connection):
@@ -162,34 +174,6 @@ class Event_Driver(Driver):
         # Function Returns: True or False (True will be turned if there are no warnings or errors. False will be returned otherwise.)
 
         return self.execute_query(self.create_query_string(column_names, event_query_dict, table_name))       
-
-    def build_error_information(self, error_player_pos, error_type, event_id, error_position):
-
-        # Function Description: The function inserts content into the Error Information table.
-        # Function Parameters: error_player_pos (The positional number of the player who made the error (i.e. 1-9)), 
-        #    error_type (The type of error that was made), event_id (The id of the event), 
-        #    error_position (The position in the event the error was incurred. (1st, 2nd, or 3rd)) 
-        # Function Throws: Nothing
-        # Function Returns: The query that will insert the error information.
-        
-        return "INSERT INTO Error_Information (Error_Player, idEvent, Error_Type, Error_Position) VALUES ('{}', '{}', '{}', '{}');".format(error_player_pos, event_id, error_type, error_position)
-
-    def insert_fielding_instance(self, event_id, fielder_pos, putout_number, table_name):
-
-        # Function Description: Insert Fielding Information from either a Putout or an Assist.
-        # Function Parameters: event_id (The event Id connected to the fielding information.), 
-        #     fielder_pos (The position of the fielder (1-9) who made the play.), 
-        #     putout_number (The putout number within the event (1-3).), 
-        #     table_name (The table to insert the content into. (Either assist or putout.))
-        # Function Throws: ValueError (The error is thrown if the table name is incorrect.)
-        # Function Returns: The query will be later inserted into the data base.
-
-        if table_name == 'Fielder_Assist_Information':
-            return "INSERT INTO Fielder_Assist_Information (idEvent, Fielder_Number, Assist_Number) VALUES ('{}', '{}', '{}');".format(event_id, fielder_pos, putout_number)
-        elif table_name == 'Fielder_Putout_Information':
-            return "INSERT INTO Fielder_Putout_Information (idEvent, Fielder_Number, Putout_Number) VALUES ('{}', '{}', '{}');".format(event_id, fielder_pos, putout_number)
-        else:
-            raise ValueError("The table name entered was incorrect.") 
 
     def insert_player_from_event(self, column_names, player_driver, event_query_dict, table_name, column_of_player_name):
 

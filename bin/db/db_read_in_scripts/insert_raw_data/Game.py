@@ -60,5 +60,5 @@ class Game_Driver(Driver):
         # Function Returns: The prepared query to be inserted.
 
         parse_game_id = self.__getQueryComponets(game_Id)            # Returned as [homeTeam, date, numGameInDay]
-        return ["INSERT IGNORE INTO game_day (Visiting_Team, Home_Team, Date, Game_ID, NumGameInDay) Values (\'" + away_team + "\', \'" + parse_game_id[0] + "\', \'" + parse_game_id[1] + "\', \'" + game_Id + "\', \'" + parse_game_id[2] + "\');"]  
+        return (away_team , parse_game_id[0], parse_game_id[1], game_Id, parse_game_id[2])  
                      
