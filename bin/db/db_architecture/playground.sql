@@ -19,8 +19,8 @@
 #select count(*) from event_instance;
 #select count(*) from event_instance;
 
-select count(*) from event_instance
+#select count(*) from event_instance
 #select count(*) from error_information
 #select * from event_catcher
 #select * from event_instance
-
+select game_id from game_day where date > '2019-08-29'
