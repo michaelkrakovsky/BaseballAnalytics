@@ -624,6 +624,30 @@ CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Fielder_Putout_Information` (
 ENGINE = InnoDB;
 
 
+-- -----------------------------------------------------
+-- Table `Baseball_Stats_DB`.`Offensive_Features`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Offensive_Features` (
+  `Game_ID` VARCHAR(45) NOT NULL,
+  `player_id` VARCHAR(45) NOT NULL,
+  `Ten_Rolling_BA` DECIMAL(5,4) NOT NULL,
+  `Ten_Rolling_OBP` DECIMAL(5,4) NOT NULL,
+  `Ten_Rolling_SLG` DECIMAL(5,4) NOT NULL,
+  PRIMARY KEY (`Game_ID`, `player_id`),
+  INDEX `offensive_player_id_idx` (`player_id` ASC) VISIBLE,
+  CONSTRAINT `offensive_player_id`
+    FOREIGN KEY (`player_id`)
+    REFERENCES `Baseball_Stats_DB`.`Player_Information` (`player_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `game_id_offensive`
+    FOREIGN KEY (`Game_ID`)
+    REFERENCES `Baseball_Stats_DB`.`Game_Day` (`Game_ID`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
