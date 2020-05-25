@@ -18,7 +18,7 @@
 #select count(*) from player_information;
 #select count(*) from event_instance;
 #select count(*) from event_instance;
-
+SET SQL_SAFE_UPDATES = 0;
 #select count(*) from event_instance
 #select count(*) from error_information
 #select * from event_catcher

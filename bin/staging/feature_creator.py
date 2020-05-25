@@ -8,10 +8,12 @@
 # Script Version: 0.1
 
 import sys
-sys.path.extend('../../../')
+sys.path.extend('../../../')                                             # Import the entire project to be found.
 from BaseballAnalytics.bin.app_utils.common_help import log_helper
+from warnings import filterwarnings                                      # Handle warnings from mysql.
+from pymysql import connect
 
-class offensive_features():
+class Offensive_Features():
 
     def __init__(self, db_connection):
 
@@ -24,31 +26,62 @@ class offensive_features():
         else:
             raise ValueError("The user did not provide the correct pymysql connector.")
 
+    def execute_query(self, query):
+
+        # Function Description: The generic query executor that utilises the current connection to the database and executes a query.
+        # Function Parameters: query (The query that will be executed.)
+        # Function Throws: Nothing
+        # Function Returns: True or False (True will be returned if there are no warnings or errors. False will be returned otherwise.)
+
+        cursor = self.__db_connection__.cursor() 
+        filterwarnings('error')                                     # Convert warnings into exceptions to be caught.                   
+        try:
+            status = cursor.execute(query)                          # Execute Query: And close the cursor.
+            self.__db_connection__.commit()                         # This essentially saves the query execution to the database.
+        except Exception as ex:
+            print(ex)
+            status = 0
+        filterwarnings('always')                                    # Turn the filter for warnings back on.
+        cursor.close()
+        return bool(status)
+
     def insert_offensive_information(self, player_id):
 
         # Function Description: The query will insert all the necessary offensive information (the basis at least) into the database.
         # Function Parameters: player_id (The player for who's values you wish to retrieve.)
+        # Function Throws: Nothing
+        # Function Returns: Nothing
 
         offensive_query = """
                             insert into offensive_features(Game_ID, player_id, Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG)
                             select A.Game_ID, A.player_id,
-                                avg(A.Game_Hits / A.Game_AB) over (Order by A.Date rows between 9 preceding and current row) as Ten_Day_BA,
-                                avg((A.Game_Hits + A.Game_Walks + A.Game_Hit_By_Pitch) / (A.Game_AB + A.Game_Walks + A.Game_Hit_By_Pitch + A.Game_SF)) 
-                                    over (Order by A.Date rows between 9 preceding and current row) as Ten_Day_OBP, 
-                                avg((A.Total_Game_Bases / A.Game_AB)) over (Order by A.Date rows between 9 preceding and current row) as Ten_Day_SLG 
+                                round(avg(A.Game_Hits / A.Game_AB) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_BA,
+                                round(avg((A.Game_Hits + A.Game_Walks + A.Game_Hit_By_Pitch) / (A.Game_AB + A.Game_Walks + A.Game_Hit_By_Pitch + A.Game_SF)) 
+                                    over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_OBP, 
+                                round(avg((A.Total_Game_Bases / A.Game_AB)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_SLG 
                                 from (select game_day.Game_ID, game_day.Date, player_information.player_id,
                                 sum(case when event_instance.AB_Flag = 'T' then 1 else 0 end) as Game_AB, 
                                 sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Game_Hits,
                                 sum(case when event_instance.SF_Flag = 'T' then 1 else 0 end) as Game_SF,
                                 sum(event_instance.Hit_Value) as Total_Game_Bases,
-                                sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\.|\\+).*$|^IW(\\.|\\+).*$') then 1 else 0 end) as Game_Walks, 
+                                sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\\\.|\\\\+).*$|^IW(\\\\.|\\\\+).*$') then 1 else 0 end) as Game_Walks, 
                                 sum(case when regexp_like(event_instance.Event_Text, '^HP.*$') then 1 else 0 end) as Game_Hit_By_Pitch
                                     from player_information inner join 
                                     batter_in_event on batter_in_event.Batter_Name = player_information.player_id inner join
                                     event_instance on event_instance.idEvent = batter_in_event.idEvent inner join
                                     game_day on event_instance.Game_ID = game_day.Game_ID
-                                        where player_information.player_id = 'aardd001'
-                                    group by game_day.Game_ID) as A;
-                        """
-aa = log_helper()
-aa.a()
+                                        where game_day.Date > '2011-03-01' and
+			                            game_day.Date < '2011-11-11' and
+                                        player_information.player_id = """ + '\'' + player_id + '\'' + '\n group by game_day.Game_ID) as A;'
+        print(self.execute_query(offensive_query))
+
+def main():
+
+    # Function Description: Create a database connection and process event files. 
+
+    conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
+    feat_creator = Offensive_Features(conn)
+    feat_creator.insert_offensive_information('bautj002')
+
+if __name__ == "__main__":
+    main()

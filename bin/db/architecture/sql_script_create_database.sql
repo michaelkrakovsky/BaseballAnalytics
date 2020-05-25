@@ -630,9 +630,9 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Offensive_Features` (
   `Game_ID` VARCHAR(45) NOT NULL,
   `player_id` VARCHAR(45) NOT NULL,
-  `Ten_Rolling_BA` DECIMAL(5,4) NOT NULL,
-  `Ten_Rolling_OBP` DECIMAL(5,4) NOT NULL,
-  `Ten_Rolling_SLG` DECIMAL(5,4) NOT NULL,
+  `Ten_Rolling_BA` DECIMAL(7,6) NOT NULL,
+  `Ten_Rolling_OBP` DECIMAL(7,6) NOT NULL,
+  `Ten_Rolling_SLG` DECIMAL(7,6) NOT NULL,
   PRIMARY KEY (`Game_ID`, `player_id`),
   INDEX `offensive_player_id_idx` (`player_id` ASC) VISIBLE,
   CONSTRAINT `offensive_player_id`
