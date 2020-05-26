@@ -335,8 +335,8 @@ class Insert_Driver(Driver):
         num_files = len([name for name in listdir(path_to_event_files) if path.isfile(path.join(path_to_event_files, name))])
         self.__empty_tables()                                                                               # Empty out the database.
         start = timer()
-        #player_driver = self.__initiate_player_driver()                                                     
-        #player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
+        player_driver = self.__initiate_player_driver()                                                     
+        player_driver.player_batch_insertion()                                                              # Insert all the players to forgoe the need for checks.
         print("Beginning Event file Insertion.")
         self.print_progress_bar(0, num_files, prefix = 'Progress:', suffix = 'Complete', length = 50)       # Initial call to print 0% progress
         for num, file_name in enumerate(listdir(path_to_event_files)):

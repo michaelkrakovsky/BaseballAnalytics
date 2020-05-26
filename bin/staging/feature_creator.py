@@ -10,6 +10,7 @@
 import sys
 sys.path.extend('../../../')                                             # Import the entire project to be found.
 from BaseballAnalytics.bin.app_utils.common_help import log_helper
+from BaseballAnalytics.bin.app_utils.queries import Queries
 from warnings import filterwarnings                                      # Handle warnings from mysql.
 from pymysql import connect
 
@@ -39,8 +40,13 @@ class Offensive_Features():
             status = cursor.execute(query)                          # Execute Query: And close the cursor.
             self.__db_connection__.commit()                         # This essentially saves the query execution to the database.
         except Exception as ex:
-            print(ex)
-            status = 0
+            status_str = str(ex)
+            status_num = status_str[1:5]
+            if status_num == '1265':                                 # Commit the query if it matches the appropriate status number.
+                status = 1
+                self.__db_connection__.commit() 
+            else:
+                status = 0
         filterwarnings('always')                                    # Turn the filter for warnings back on.
         cursor.close()
         return bool(status)
@@ -52,6 +58,7 @@ class Offensive_Features():
         # Function Throws: Nothing
         # Function Returns: Nothing
 
+        # 10 Day Moving BA, 10 Day OBP, 10 Day SLG
         offensive_query = """
                             insert into offensive_features(Game_ID, player_id, Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG)
                             select A.Game_ID, A.player_id,
@@ -70,10 +77,10 @@ class Offensive_Features():
                                     batter_in_event on batter_in_event.Batter_Name = player_information.player_id inner join
                                     event_instance on event_instance.idEvent = batter_in_event.idEvent inner join
                                     game_day on event_instance.Game_ID = game_day.Game_ID
-                                        where game_day.Date > '2011-03-01' and
-			                            game_day.Date < '2011-11-11' and
-                                        player_information.player_id = """ + '\'' + player_id + '\'' + '\n group by game_day.Game_ID) as A;'
-        print(self.execute_query(offensive_query))
+                                        where player_information.player_id = """ + '\'' + player_id + '\'' + '\n group by game_day.Game_ID) as A;'
+        return self.execute_query(offensive_query)
+
+
 
 def main():
 
@@ -81,7 +88,9 @@ def main():
 
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
     feat_creator = Offensive_Features(conn)
-    feat_creator.insert_offensive_information('bautj002')
+    #feat_creator.insert_offensive_information('bautj002')
+    qs = Queries(conn)
+    qs.get_all_player_ids()
 
 if __name__ == "__main__":
     main()
