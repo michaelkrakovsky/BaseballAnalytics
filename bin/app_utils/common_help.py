@@ -1,7 +1,7 @@
 # Script Discription: The script will contain helper functions used across stages.
 # Script Version 1.0
 
-class log_helper():
+class Log_Helper():
 
     def __init__(self):
 

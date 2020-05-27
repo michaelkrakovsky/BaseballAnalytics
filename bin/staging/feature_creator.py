@@ -9,7 +9,8 @@
 
 import sys
 sys.path.extend('../../../')                                             # Import the entire project to be found.
-from BaseballAnalytics.bin.app_utils.common_help import log_helper
+from timeit import default_timer as timer
+from BaseballAnalytics.bin.app_utils.common_help import Log_Helper
 from BaseballAnalytics.bin.app_utils.queries import Queries
 from warnings import filterwarnings                                      # Handle warnings from mysql.
 from pymysql import connect
@@ -80,7 +81,24 @@ class Offensive_Features():
                                         where player_information.player_id = """ + '\'' + player_id + '\'' + '\n group by game_day.Game_ID) as A;'
         return self.execute_query(offensive_query)
 
+    def create_all_offensive_information(self):
 
+        # Function Description: The orchestration function which fills the offensive features with all information for each player.\
+        # Function Parameters: Nothing
+        # Function Throws: Nothing
+        # Function Returns: Nothing
+
+        qs = Queries(self.__db_connection__)
+        lh = Log_Helper()
+        player_ids = qs.get_all_player_ids()
+        total_player_ids = len(player_ids)
+        start = timer()
+        lh.print_progress_bar(0, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
+        for num, id in enumerate(player_ids):                           # Find the offensive stats for every player.
+            self.insert_offensive_information(id[0])
+            lh.print_progress_bar(num + 1, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
+        end = timer()
+        print("Total processing time to create all offensive features: " + str(end - start))
 
 def main():
 
@@ -88,9 +106,29 @@ def main():
 
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
     feat_creator = Offensive_Features(conn)
-    #feat_creator.insert_offensive_information('bautj002')
-    qs = Queries(conn)
-    qs.get_all_player_ids()
+    feat_creator.create_all_offensive_information()                                                              # Create all the offensive features.
 
 if __name__ == "__main__":
     main()
+
+    ((A.Num_Hits + A.Num_Walks) / A.Num_Innings) as WHIP
+#(A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home) as Num_Runs_Allowed
+	from (select year(game_day.Date) as Season, 
+	sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
+	sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
+	sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\.|\\+).*$|^IW(\\.|\\+).*$') then 1 else 0 end) as Num_Walks,
+	sum(case when runner_on_first_details.Runner_On_1st_Dest > 3 then 1 else 0 end) as Runs_From_First,
+	sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3 then 1 else 0 end) as Runs_From_Second,
+	sum(case when runner_on_third_details.Runner_On_3rd_Dest > 3 then 1 else 0 end) as Runs_From_Third,
+    sum(case when event_instance.Batter_Dest > 3 then 1 else 0 end) as Runs_From_Home,
+    Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
+		from event_instance
+		inner join pitcher_in_event on event_instance.idEvent=pitcher_in_event.idEvent
+		inner join game_day on event_instance.Game_ID=game_day.Game_ID
+		inner join player_information on player_information.player_id=pitcher_in_event.Pitcher_Name
+        inner join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
+		inner join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
+        inner join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
+			where player_information.player_id = 'hallr001'
+				group by year(game_day.Date)
+				order by year(game_day.Date)) as A;
