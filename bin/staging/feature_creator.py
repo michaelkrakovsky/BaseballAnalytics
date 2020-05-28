@@ -4,18 +4,22 @@
 #    1. Batting Average
 #    2. On Base Percentage
 #    3. Slugging Percentage
+# Related to Pitchers, there are three features that have been choosen to begin.
+#    1. Strikeouts
+#    2. WHIP
+#    3. Approx. Runs Allowed
 # Script Creator: Michael Krakovsky
 # Script Version: 0.1
 
-import sys
-sys.path.extend('../../../')                                             # Import the entire project to be found.
+from sys import path
+path.extend('../../../')                                                 # Import the entire project to be found.
 from timeit import default_timer as timer
 from BaseballAnalytics.bin.app_utils.common_help import Log_Helper
 from BaseballAnalytics.bin.app_utils.queries import Queries
-from warnings import filterwarnings                                      # Handle warnings from mysql.
 from pymysql import connect
+from generic_creator import Generic_Features
 
-class Offensive_Features():
+class Offensive_Features(Generic_Features):
 
     def __init__(self, db_connection):
 
@@ -23,34 +27,7 @@ class Offensive_Features():
         #    I will create the tables prior to executing the queries. The tables can be found in the schema diagram.
         # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.)
 
-        if (str(type(db_connection)) == '<class \'pymysql.connections.Connection\'>'):
-            self.__db_connection__ = db_connection
-        else:
-            raise ValueError("The user did not provide the correct pymysql connector.")
-
-    def execute_query(self, query):
-
-        # Function Description: The generic query executor that utilises the current connection to the database and executes a query.
-        # Function Parameters: query (The query that will be executed.)
-        # Function Throws: Nothing
-        # Function Returns: True or False (True will be returned if there are no warnings or errors. False will be returned otherwise.)
-
-        cursor = self.__db_connection__.cursor() 
-        filterwarnings('error')                                     # Convert warnings into exceptions to be caught.                   
-        try:
-            status = cursor.execute(query)                          # Execute Query: And close the cursor.
-            self.__db_connection__.commit()                         # This essentially saves the query execution to the database.
-        except Exception as ex:
-            status_str = str(ex)
-            status_num = status_str[1:5]
-            if status_num == '1265':                                 # Commit the query if it matches the appropriate status number.
-                status = 1
-                self.__db_connection__.commit() 
-            else:
-                status = 0
-        filterwarnings('always')                                    # Turn the filter for warnings back on.
-        cursor.close()
-        return bool(status)
+        Generic_Features.__init__(self, db_connection)
 
     def insert_offensive_information(self, player_id):
 
@@ -100,38 +77,78 @@ class Offensive_Features():
         end = timer()
         print("Total processing time to create all offensive features: " + str(end - start))
 
+class Pitcher_Features(Generic_Features):
+
+    def __init__(self, db_connection):
+
+        # Class Description: The class will direct the queries in creating the stats related to Pitchers. Assume that the 
+        #    tables will be created prior to the insertion of the stats.
+        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.)
+
+        Generic_Features.__init__(self, db_connection)
+
+    def insert_pitcher_information(self, player_id):
+
+        # Function Description: The query will insert all the necessary pitching information (the basis at least) into the database.
+        # Function Parameters: player_id (The player for who's values you wish to retrieve.)
+        # Function Throws: Nothing
+        # Function Returns: Nothing
+
+        # 10 Day Ks, 10 Day WHIP, 10 Day RA
+        pitching_query = """
+                    insert into pitching_features(Game_ID, player_id, Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA)
+                    select A.Game_ID, A.player_id,
+                    round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_Ks,
+                    round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_WHIP, 
+                    round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_RA 
+                        from (select game_day.Game_ID, game_day.Date, player_information.player_id,
+                        sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
+                        sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
+                        sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\\\.|\\\\+).*$|^IW(\\\\.|\\\\+).*$') then 1 else 0 end) as Num_Walks,
+                        sum(case when runner_on_first_details.Runner_On_1st_Dest > 3 then 1 else 0 end) as Runs_From_First,
+                        sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3  then 1 else 0 end) as Runs_From_Second,
+                        sum(case when runner_on_third_details.Runner_On_3rd_Dest > 3 then 1 else 0 end) as Runs_From_Third,
+                        sum(case when event_instance.Batter_Dest > 3 then 1 else 0 end) as Runs_From_Home,
+                        Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
+                            from event_instance
+                            inner join pitcher_in_event on event_instance.idEvent=pitcher_in_event.idEvent
+                            inner join game_day on event_instance.Game_ID=game_day.Game_ID
+                            inner join player_information on player_information.player_id=pitcher_in_event.Pitcher_Name
+                            left join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
+                            left join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
+                            left join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
+                                where player_information.player_id = """ + '\'' + player_id + '\'' + """\ngroup by game_day.Game_ID) as A;"""
+        return self.execute_query(pitching_query)
+
+    def create_all_pitcher_information(self):
+
+        # Function Description: The orchestration function which fills the pitching features with all information for each player.
+        # Function Parameters: Nothing
+        # Function Throws: Nothing
+        # Function Returns: Nothing
+
+        qs = Queries(self.__db_connection__)
+        lh = Log_Helper()
+        player_ids = qs.get_all_player_ids()
+        total_player_ids = len(player_ids)
+        start = timer()
+        lh.print_progress_bar(0, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
+        for num, id in enumerate(player_ids):                           # Find the offensive stats for every player.
+            self.insert_pitcher_information(id[0])
+            lh.print_progress_bar(num + 1, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
+        end = timer()
+        print("Total processing time to create all pitching features: " + str(end - start))
+
 def main():
 
     # Function Description: Create a database connection and process event files. 
 
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
-    feat_creator = Offensive_Features(conn)
-    feat_creator.create_all_offensive_information()                                                              # Create all the offensive features.
+    #off_feat_creator = Offensive_Features(conn)
+    #off_feat_creator.create_all_offensive_information()                                                          # Create all the offensive and pitcher features.
+    pitch_feat_creator = Pitcher_Features(conn)
+    pitch_feat_creator.create_all_pitcher_information()
 
 if __name__ == "__main__":
     main()
 
-pitcher_query = """
-select A.Game_ID, A.player_id,
-round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Num_Strikeouts,
-round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_WHIP, 
-round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Runs_Allowed 
-	from (select game_day.Game_ID, game_day.Date, player_information.player_id,
-	sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
-	sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
-	sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\.|\\+).*$|^IW(\\.|\\+).*$') then 1 else 0 end) as Num_Walks,
-	sum(case when runner_on_first_details.Runner_On_1st_Dest > 3 then 1 else 0 end) as Runs_From_First,
-	sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3  then 1 else 0 end) as Runs_From_Second,
-	sum(case when runner_on_third_details.Runner_On_3rd_Dest > 3 then 1 else 0 end) as Runs_From_Third,
-    sum(case when event_instance.Batter_Dest > 3 then 1 else 0 end) as Runs_From_Home,
-	Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
-		from event_instance
-		inner join pitcher_in_event on event_instance.idEvent=pitcher_in_event.idEvent
-		inner join game_day on event_instance.Game_ID=game_day.Game_ID
-		inner join player_information on player_information.player_id=pitcher_in_event.Pitcher_Name
-		left join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
-		left join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
-        left join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
-			where player_information.player_id = 'hallr001'
-				group by game_day.Game_ID
-                order by game_day.Date) as A;"""

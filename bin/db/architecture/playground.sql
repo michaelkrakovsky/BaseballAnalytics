@@ -23,4 +23,5 @@ SET SQL_SAFE_UPDATES = 0;
 #select count(*) from error_information
 #select * from event_catcher
 #select * from event_instance
-select game_id from game_day where date > '2019-08-29'
+select game_id from game_day where date > '2019-08-29';
+select count(*) from pitching_features;
