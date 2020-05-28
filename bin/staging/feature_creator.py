@@ -111,24 +111,27 @@ def main():
 if __name__ == "__main__":
     main()
 
-    ((A.Num_Hits + A.Num_Walks) / A.Num_Innings) as WHIP
-#(A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home) as Num_Runs_Allowed
-	from (select year(game_day.Date) as Season, 
+pitcher_query = """
+select A.Game_ID, A.player_id,
+round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Num_Strikeouts,
+round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_WHIP, 
+round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Runs_Allowed 
+	from (select game_day.Game_ID, game_day.Date, player_information.player_id,
 	sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
 	sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
 	sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\.|\\+).*$|^IW(\\.|\\+).*$') then 1 else 0 end) as Num_Walks,
 	sum(case when runner_on_first_details.Runner_On_1st_Dest > 3 then 1 else 0 end) as Runs_From_First,
-	sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3 then 1 else 0 end) as Runs_From_Second,
+	sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3  then 1 else 0 end) as Runs_From_Second,
 	sum(case when runner_on_third_details.Runner_On_3rd_Dest > 3 then 1 else 0 end) as Runs_From_Third,
     sum(case when event_instance.Batter_Dest > 3 then 1 else 0 end) as Runs_From_Home,
-    Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
+	Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
 		from event_instance
 		inner join pitcher_in_event on event_instance.idEvent=pitcher_in_event.idEvent
 		inner join game_day on event_instance.Game_ID=game_day.Game_ID
 		inner join player_information on player_information.player_id=pitcher_in_event.Pitcher_Name
-        inner join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
-		inner join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
-        inner join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
+		left join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
+		left join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
+        left join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
 			where player_information.player_id = 'hallr001'
-				group by year(game_day.Date)
-				order by year(game_day.Date)) as A;
+				group by game_day.Game_ID
+                order by game_day.Date) as A;"""
