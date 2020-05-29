@@ -144,8 +144,8 @@ def main():
     # Function Description: Create a database connection and process event files. 
 
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
-    #off_feat_creator = Offensive_Features(conn)
-    #off_feat_creator.create_all_offensive_information()                                                          # Create all the offensive and pitcher features.
+    off_feat_creator = Offensive_Features(conn)
+    off_feat_creator.create_all_offensive_information()                                                          # Create all the offensive and pitcher features.
     pitch_feat_creator = Pitcher_Features(conn)
     pitch_feat_creator.create_all_pitcher_information()
 
