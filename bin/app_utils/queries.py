@@ -2,6 +2,8 @@
 # Script Version: 1.0
 
 from pymysql import connect
+from warnings import filterwarnings
+from BaseballAnalytics.bin.app_utils.common_help import Log_Helper
 
 class Queries():
 
@@ -21,10 +23,17 @@ class Queries():
         # Function Parameters: query (The query to execute in the database.)
         # Function Throws: Nothing
         # Function Returns: The contents from the query.
-
-        with self.__db_connection__.cursor() as c:
-            c.execute(query)
-            return c.fetchall()
+        
+        filterwarnings('error')    
+        try:
+            with self.__db_connection__.cursor() as c:
+                c.execute(query)
+                filterwarnings('always')
+                return c.fetchall()
+        except Exception as ex:
+            print("The expections {}".format(ex))
+            print("The query {}".format(query))
+            raise Exception("A fire is buring in fetch_data.")
 
     def get_all_player_ids(self):
 
@@ -185,3 +194,26 @@ class Queries():
 
         game_features = []
         vis_players, home_players = self.get_players_in_game_vOne(game_id)
+        game_features += self.get_pitchers_features(vis_players[0], game_id) 
+        for player_id in vis_players[1:]:                                             # Add all the visitor players to the feature sets.
+            game_features += self.get_offensive_features(player_id, game_id)   
+        game_features += self.get_pitchers_features(home_players[0], game_id) 
+        for player_id in home_players[1:]:
+            game_features += self.get_offensive_features(player_id, game_id)          # Add all the home players to the feature sets.
+        return game_features
+
+    def get_all_game_features(self, game_ids):
+
+        # Function Description: Given a list of game ids, retrieve the features for every game.
+        # Function Parameters: game_ids (The list of game ids.)
+        # Function Throws: Nothing
+        # Function Returns: A list of lists containing the game features.
+
+        num_games = len(game_ids)
+        all_game_features = []
+        lh = Log_Helper()
+        lh.print_progress_bar(0, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
+        for num, game_id in enumerate(game_ids):
+            all_game_features += self.get_game_features(game_id)
+            lh.print_progress_bar(num + 1, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
+        return all_game_features
