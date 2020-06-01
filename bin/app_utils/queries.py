@@ -210,10 +210,10 @@ class Queries():
         # Function Returns: A list of lists containing the game features.
 
         num_games = len(game_ids)
-        all_game_features = []
+        all_game_features = {}
         lh = Log_Helper()
         lh.print_progress_bar(0, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
         for num, game_id in enumerate(game_ids):
-            all_game_features += self.get_game_features(game_id)
+            all_game_features[game_id] = self.get_game_features(game_id)
             lh.print_progress_bar(num + 1, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
         return all_game_features
