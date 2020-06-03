@@ -4,6 +4,9 @@
 from pymysql import connect
 from warnings import filterwarnings
 from BaseballAnalytics.bin.app_utils.common_help import Log_Helper
+from re import search
+from pickle import load, dump
+from timeit import default_timer as timer
 
 class Queries():
 
@@ -87,6 +90,35 @@ class Queries():
             list_outcomes.append(outcome[0])
         return list_outcomes
 
+    def convert_query_to_dict(self, data):
+        
+        # Function Description: Convert the data from a query into a dictionay to be indexed.
+        #    The game id MUST BE the first value in the column.
+        # Function Parameters: data (The data that was extractred from the query.)
+        # Function Throws: Nothing
+        # Function Returns: The dictionary containing a list of events associated with the Game Id
+        
+        query_dict = {}
+        for row in data:
+            if row[0] not in query_dict:
+                query_dict[row[0]] = [list(row[1:])]
+            else:
+                game_list = query_dict[row[0]]
+                game_list.append(list(row[1:]))
+        return query_dict
+
+    def get_starting_pitcher(self, pitchers, game_id, team_batting):
+
+        # Function Description: Givin all the batting events in a game, extract the starting the lineup.
+        # Function Parameters: batting_players (The dictionary containing all the events from all games.), 
+        #    game_id (The game id you wish to extract the betting lineup.), team_batting (The batting team: The Visting Team is 0, the Home Team is 1.)
+        # Function Throws: Nothing
+        # Function Returns: The list of players in the batting lineup.
+
+        isolate_pitchers = [(team, player_id, e_id) for team, player_id, e_id in pitchers[game_id] if team == team_batting]     # Return only the first name for now.
+        isolate_pitchers.sort(key=lambda x: int(search(r'\d+', x[2][:3]).group()))
+        return isolate_pitchers[0][1]
+
     def get_players_in_game_vOne(self, game_id):
 
         # Function Description: The function returns only the players and the starting pitcher with the respective game ids. This will be the first attempt of gathering
@@ -123,6 +155,73 @@ class Queries():
                 break
         return (game_vistors, game_homers)
 
+    def get_starting_batters(self, batting_players, game_id, team_batting):
+
+        # Function Description: Givin all the batting events in a game, extract the starting the lineup.
+        # Function Parameters: batting_players (The dictionary containing all the events from all games.), 
+        #    game_id (The game id you wish to extract the betting lineup.), team_batting (The batting team: The Visting Team is 0, the Home Team is 1.)
+        # Function Throws: Nothing
+        # Function Returns: The list of players in the batting lineup.
+                                                        
+        filter_team = [(g_id, team, e_id) for g_id, team, e_id in batting_players[game_id] if team == team_batting] 
+        filter_team.sort(key=lambda x: int(search(r'\d+', x[2][:3]).group()))      # Sort the string by the leading numbers of each id.
+        player_count = 0                                                           # Add the first unique 9 players found in the event lineup.
+        player_lineup = []
+        for tup in filter_team:
+            if tup[0] not in player_lineup: 
+                player_lineup.append(tup[0])
+                player_count += 1
+            if player_count >= 9: break                     # Exit the loop when you have all the players.
+        return player_lineup
+
+    def get_batters_in_all_games_vOne(self, prev_query=None):
+
+        # Function Description: The function returns only the players and the starting pitcher with the respective game ids. This will be the first attempt of gathering
+        #    the starting lineup.
+        # Function Parameters: prev_query (The path to the results of a previous query.)
+        # Function Throws: Nothing
+        # Function Returns: A tuple containing two lists. The first list contains the home team names while the second list contains the away teams.
+
+        # Home Team equals 1 for Batting Team. The query is formatted like such: 
+        #     Game_ID, Batter_Name, Batting_Team, idEvent
+        
+        if prev_query != None:                  # Check if the query was executed before prior to performing another query.
+            with open(prev_query, 'rb') as f:
+                data = load(f)
+                return self.convert_query_to_dict(data)
+        game_participants = self.fetch_data("""select event_instance.Game_ID, batter_in_event.Batter_Name, 
+                                        batter_in_event.Batting_Team, batter_in_event.idEvent 
+                                        from batter_in_event 
+                                        inner join event_instance on batter_in_event.idEvent=event_instance.idEvent
+                                    """)
+        with open(r'C:\Users\micha\Documents\Baseball_Analytics_Source_Data\model_v1\game_players.pickle', 'wb') as f:
+            dump(game_participants, f)
+        return self.convert_query_to_dict(game_participants)
+
+    def get_pitchers_in_all_games_vOne(self, prev_query=None):
+
+        # Function Description: Retrieve the list of all pitchers who participated in every game.
+        # Function Parameters: prev_query (The path to a previous query.)
+        # Function Throws: Nothing
+        # Function Returns: A dictionary with the game ids as keys storing the pitchers who participates.
+
+        # Home Team equals 1 for Batting Team. The query is formatted like such: 
+        #     Game_ID, Batter_Name, Batting_Team, idEvent
+        
+        if prev_query != None:                  # Check if the query was executed before prior to performing another query.
+            with open(prev_query, 'rb') as f:
+                data = load(f)
+                return self.convert_query_to_dict(data)
+        game_participants = self.fetch_data("""select DISTINCT event_instance.Game_ID, batter_in_event.Batting_Team, 
+                                        pitcher_in_event.Pitcher_Name, pitcher_in_event.idEvent
+                                            from event_instance
+                                            inner join pitcher_in_event on pitcher_in_event.idEvent=event_instance.idEvent
+                                            inner join batter_in_event on batter_in_event.idEvent=event_instance.idEvent
+                                    """)
+        with open(r'C:\Users\micha\Documents\Baseball_Analytics_Source_Data\model_v1\game_pitchers.pickle', 'wb') as f:
+            dump(game_participants, f)
+        return self.convert_query_to_dict(game_participants)
+
     def get_offensive_features(self, player_id, game_id):
 
         # Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
@@ -138,7 +237,7 @@ class Queries():
                                     and game_day.Date < (select game_day.Date from game_day where game_day.Game_ID = '{}')
                                     order by game_day.Date Desc;
                                     """.format(player_id, game_id))
-        if len(features) < 10:
+        if len(features) < 4:
             return [-1, -1, -1]
         return list(features[0])                           # Return the first row which contains the data from the previous day.
 
@@ -157,9 +256,9 @@ class Queries():
                                     and game_day.Date < (select game_day.Date from game_day where game_day.Game_ID = '{}')
                                     order by game_day.Date Desc;
                                     """.format(player_id, game_id))
-        if len(features) < 5:                              # I reduced the number of previous games for pitcher by half.
+        if len(features) < 2:                              # I reduced the number of previous games for pitcher by half.
             return [-1, -1, -1]
-        return list(features[0])                           # Return the first row which contains the data from the previous day.
+        return list(features[0])                           # Return the first row which contains the data from the previous day.                         # Return the first row which contains the data from the previous day.
 
     def sub_pitching_features(self, pitchers, game_id):
 
@@ -170,8 +269,8 @@ class Queries():
 
         pitcher_features = []
         for pitcher in pitchers:
-            pitcher_features = pitcher_features + self.get_pitchers_features(pitcher, game_id)
-        return pitcher_features
+            pitcher_features += self.get_pitchers_features(pitcher, game_id)
+        return [float(feat) for feat in pitcher_features]
 
     def sub_offensive_features(self, batters, game_id):
 
@@ -182,38 +281,39 @@ class Queries():
 
         offensive_features = []
         for batter in batters:
-            offensive_features = offensive_features + self.get_offensive_features(batter, game_id)
-        return offensive_features
+            offensive_features += self.get_offensive_features(batter, game_id)
+        return [float(feat) for feat in offensive_features]
 
-    def get_game_features(self, game_id):
+    def get_game_features(self, all_batters, all_pitcher, game_id):
 
         # Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
         # Function Parameters: game_id (The game id used to acquire the player features.)
         # Function Throws: Nothing
         # Function Returns: A single list containing the features of the game.
-
+        start = timer()
         game_features = []
-        vis_players, home_players = self.get_players_in_game_vOne(game_id)
-        game_features += self.get_pitchers_features(vis_players[0], game_id) 
-        for player_id in vis_players[1:]:                                             # Add all the visitor players to the feature sets.
-            game_features += self.get_offensive_features(player_id, game_id)   
-        game_features += self.get_pitchers_features(home_players[0], game_id) 
-        for player_id in home_players[1:]:
-            game_features += self.get_offensive_features(player_id, game_id)          # Add all the home players to the feature sets.
+        home_players = [self.get_starting_pitcher(all_pitcher, game_id, 0)]
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("1." + str(end - start))
+        home_players += self.get_starting_batters(all_batters, game_id, 1)
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("2." + str(end - start))
+        game_features += self.sub_pitching_features([home_players[0]], game_id)       # Substitute the player names for their features.
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("3." + str(end - start))
+        game_features += self.sub_offensive_features(home_players[1:], game_id)
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("4." + str(end - start))
+        vis_players = [self.get_starting_pitcher(all_pitcher, game_id, 1)]            # Vice versa.
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("5." + str(end - start))
+        vis_players += self.get_starting_batters(all_batters, game_id, 0)
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("6." + str(end - start))
+        game_features += self.sub_pitching_features([vis_players[0]], game_id)
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("7." + str(end - start))
+        game_features += self.sub_offensive_features(vis_players[1:], game_id)
+        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
+        print("8." + str(end - start))
         return game_features
-
-    def get_all_game_features(self, game_ids):
-
-        # Function Description: Given a list of game ids, retrieve the features for every game.
-        # Function Parameters: game_ids (The list of game ids.)
-        # Function Throws: Nothing
-        # Function Returns: A list of lists containing the game features.
-
-        num_games = len(game_ids)
-        all_game_features = {}
-        lh = Log_Helper()
-        lh.print_progress_bar(0, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
-        for num, game_id in enumerate(game_ids):
-            all_game_features[game_id] = self.get_game_features(game_id)
-            lh.print_progress_bar(num + 1, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
-        return all_game_features
