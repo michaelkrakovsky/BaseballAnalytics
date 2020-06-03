@@ -107,6 +107,24 @@ class Queries():
                 game_list.append(list(row[1:]))
         return query_dict
 
+    def org_by_player_then_game(self, features):
+
+        # Function Description: The function will organise a raw query into a dictionary of lists. The lists within the dictionary are organised from oldest to greatest.
+        # Function Parameters: features (The features that must be organised. Note, the Game_ID must be located in the first column 
+        #    while the player_id is located in the second column.)
+        # Function Throws: Nothing
+        # Function Returns: The dictionary of lists where the GameID within the list are ordered.
+
+        org_features = {}
+        for feature in features:                 # Create the dict of lists of lists where lists are stored as uner the player id.
+            player_id = feature[1]
+            if player_id not in org_features: 
+                org_features[player_id] = [[feature[0], float(feature[2]), float(feature[3]), float(feature[4])]]     # Intiate the first player value.
+            else: 
+                temp_list = org_features[player_id]
+                temp_list.append([feature[0], float(feature[2]), float(feature[3]), float(feature[4])])               # Append to that order.
+        return org_features
+
     def get_starting_pitcher(self, pitchers, game_id, team_batting):
 
         # Function Description: Givin all the batting events in a game, extract the starting the lineup.
@@ -154,6 +172,29 @@ class Queries():
                 game_homers = game_participants[loc][2:]                      # This will provide the values of the home team. Once retrieved, we have all what we need.
                 break
         return (game_vistors, game_homers)
+
+    def get_all_offensive_features(self, query_loc, get_again_flag=False):
+
+        # Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
+        # Function Parameters: query_loc (The location of results of previous queries.), 
+        #    get_again_flag (The function will talk to the database once again and repickle results. (CI))
+        # Function Throws: Nothing
+        # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
+        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+
+        if get_again_flag == False:                  # Use the information already provided.
+            with open(query_loc, 'rb') as f:
+                data = load(f)
+                return self.org_by_player_then_game(data)
+        # Else, execute the query and recalulate.
+        features = self.fetch_data("""                        
+                                select offensive_features.Game_ID, offensive_features.player_id, 
+                                Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG from offensive_features inner join
+                                game_day on game_day.Game_ID=offensive_features.Game_ID
+                                order by game_day.Date asc
+                                """)        
+        with open(query_loc, 'wb') as f: dump(features, f)
+        return self.org_by_player_then_game(features)
 
     def get_starting_batters(self, batting_players, game_id, team_batting):
 
@@ -222,7 +263,7 @@ class Queries():
             dump(game_participants, f)
         return self.convert_query_to_dict(game_participants)
 
-    def get_offensive_features(self, player_id, game_id):
+    def get_offensive_features(self, offensive_features, player_id, game_id):
 
         # Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
         # Function Parameters: player_id (The player id associated in which we wish to retrieve the data.), game_id (The game id needed to look backwards.)
@@ -230,16 +271,12 @@ class Queries():
         # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
         #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
 
-        features = self.fetch_data("""
-                                    select Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG from offensive_features inner join
-                                    game_day on game_day.Game_ID=offensive_features.Game_ID
-                                    where player_id = '{}'
-                                    and game_day.Date < (select game_day.Date from game_day where game_day.Game_ID = '{}')
-                                    order by game_day.Date Desc;
-                                    """.format(player_id, game_id))
-        if len(features) < 4:
+        player_stats = offensive_features[player_id]
+        if len(player_stats) < 4:                          # Not enough games played to create reasonable stats.
             return [-1, -1, -1]
-        return list(features[0])                           # Return the first row which contains the data from the previous day.
+        for idx, games in enumerate(player_stats):
+            if games[0] == game_id:
+                return player_stats[idx - 1][1:]           # Return the stats from the day before. Should we particularily focus on a seaosn? Should things get a rest?
 
     def get_pitchers_features(self, player_id, game_id):
 
@@ -272,24 +309,28 @@ class Queries():
             pitcher_features += self.get_pitchers_features(pitcher, game_id)
         return [float(feat) for feat in pitcher_features]
 
-    def sub_offensive_features(self, batters, game_id):
+    def sub_offensive_features(self, offensive_features, batters, game_id):
 
         # Function Description: Substitute the batters ids provided with the batting features. The features will be returned in the same order the names are provided.
-        # Function Parameters: batters (The player id we wish to retrieve the data for.), game_id (The game id needed to look backwards.) 
+        # Function Parameters: offensive_features (The dictionary containing the player ids that are tied to the offensive features.) 
+        #    batters (The player id we wish to retrieve the data for.), game_id (The game id needed to look backwards.) 
         # Function Throws: Nothing
         # Function Returns: A complete list of the featues to be inputted into the model. The list will vary depending on the number of players and features for each player.
 
-        offensive_features = []
+        game_offensive_features = []
         for batter in batters:
-            offensive_features += self.get_offensive_features(batter, game_id)
-        return [float(feat) for feat in offensive_features]
+            game_offensive_features += self.get_offensive_features(offensive_features, batter, game_id)
+        return game_offensive_features
 
-    def get_game_features(self, all_batters, all_pitcher, game_id):
+    def get_game_features(self, all_batters, all_pitcher, offensive_features, game_id):
 
         # Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
-        # Function Parameters: game_id (The game id used to acquire the player features.)
+        # Function Parameters: all_batters (All of the batters information.) all_pitcher (All of the pitchers information.), 
+        #     offensive_features (All of the offensive features that are used to predict outcome.), 
+        #     game_id (The game id used to acquire the player features.)
         # Function Throws: Nothing
         # Function Returns: A single list containing the features of the game.
+
         start = timer()
         game_features = []
         home_players = [self.get_starting_pitcher(all_pitcher, game_id, 0)]
@@ -301,7 +342,7 @@ class Queries():
         game_features += self.sub_pitching_features([home_players[0]], game_id)       # Substitute the player names for their features.
         end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
         print("3." + str(end - start))
-        game_features += self.sub_offensive_features(home_players[1:], game_id)
+        game_features += self.sub_offensive_features(offensive_features, home_players[1:], game_id)
         end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
         print("4." + str(end - start))
         vis_players = [self.get_starting_pitcher(all_pitcher, game_id, 1)]            # Vice versa.
@@ -313,7 +354,7 @@ class Queries():
         game_features += self.sub_pitching_features([vis_players[0]], game_id)
         end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
         print("7." + str(end - start))
-        game_features += self.sub_offensive_features(vis_players[1:], game_id)
+        game_features += self.sub_offensive_features(offensive_features, vis_players[1:], game_id)
         end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
         print("8." + str(end - start))
         return game_features

@@ -56,6 +56,7 @@ class Offensive_Features(Generic_Features):
                                     event_instance on event_instance.idEvent = batter_in_event.idEvent inner join
                                     game_day on event_instance.Game_ID = game_day.Game_ID
                                         where player_information.player_id = """ + '\'' + player_id + '\'' + '\n group by game_day.Game_ID) as A;'
+        #### NOTE: Some QUERIES WILL FAIL BECAUSE NULL IS RETURNED IN A ROW
         return self.execute_query(offensive_query)
 
     def create_all_offensive_information(self):
