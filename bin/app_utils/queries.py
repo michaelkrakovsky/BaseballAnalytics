@@ -330,7 +330,7 @@ class Queries():
         # Function Parameters: all_batters (All of the batters information.) all_pitcher (All of the pitchers information.), 
         #     offensive_features (All of the offensive features that are used to predict outcome.), 
         #     game_id (The game id used to acquire the player features.)
-        # Function Throws: Nothing
+        # Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
         # Function Returns: A single list containing the features of the game.
 
         game_features = []
