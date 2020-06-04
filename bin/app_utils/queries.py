@@ -1,5 +1,5 @@
 # Script Description: The script will contain queries that can be used across functions. All one needs to input is a connection to the database.
-# Script Version: 1.0
+# Script Version: 2.0
 
 from pymysql import connect
 from warnings import filterwarnings
@@ -177,7 +177,7 @@ class Queries():
 
         # Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
         # Function Parameters: query_loc (The location of results of previous queries.), 
-        #    get_again_flag (The function will talk to the database once again and repickle results. (CI))
+        #    get_again_flag (The function will talk to the database once again and place the results. (CI))
         # Function Throws: Nothing
         # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
         #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
@@ -215,19 +215,20 @@ class Queries():
             if player_count >= 9: break                     # Exit the loop when you have all the players.
         return player_lineup
 
-    def get_batters_in_all_games_vOne(self, prev_query=None):
+    def get_batters_in_all_games_vOne(self, query_loc, get_again_flag=False):
 
         # Function Description: The function returns only the players and the starting pitcher with the respective game ids. This will be the first attempt of gathering
         #    the starting lineup.
-        # Function Parameters: prev_query (The path to the results of a previous query.)
-        # Function Throws: Nothing
+        # Function Parameters: query_loc (The location of results of previous queries.), 
+        #    get_again_flag (The function will talk to the database once again and replace the results. (CI))
+        # Function Throws: Nothing222
         # Function Returns: A tuple containing two lists. The first list contains the home team names while the second list contains the away teams.
 
         # Home Team equals 1 for Batting Team. The query is formatted like such: 
         #     Game_ID, Batter_Name, Batting_Team, idEvent
         
-        if prev_query != None:                  # Check if the query was executed before prior to performing another query.
-            with open(prev_query, 'rb') as f:
+        if get_again_flag == False:                  # Check if the query was executed before prior to performing another query.
+            with open(query_loc, 'rb') as f:
                 data = load(f)
                 return self.convert_query_to_dict(data)
         game_participants = self.fetch_data("""select event_instance.Game_ID, batter_in_event.Batter_Name, 
@@ -235,22 +236,23 @@ class Queries():
                                         from batter_in_event 
                                         inner join event_instance on batter_in_event.idEvent=event_instance.idEvent
                                     """)
-        with open(r'C:\Users\micha\Documents\Baseball_Analytics_Source_Data\model_v1\game_players.pickle', 'wb') as f:
+        with open(query_loc, 'wb') as f:
             dump(game_participants, f)
         return self.convert_query_to_dict(game_participants)
 
-    def get_pitchers_in_all_games_vOne(self, prev_query=None):
+    def get_pitchers_in_all_games_vOne(self, query_loc, get_again_flag=False):
 
         # Function Description: Retrieve the list of all pitchers who participated in every game.
-        # Function Parameters: prev_query (The path to a previous query.)
+        # Function Parameters: query_loc (The location of results of previous queries.), 
+        #    get_again_flag (The function will talk to the database once again and replace the results. (CI))
         # Function Throws: Nothing
         # Function Returns: A dictionary with the game ids as keys storing the pitchers who participates.
 
         # Home Team equals 1 for Batting Team. The query is formatted like such: 
         #     Game_ID, Batter_Name, Batting_Team, idEvent
         
-        if prev_query != None:                  # Check if the query was executed before prior to performing another query.
-            with open(prev_query, 'rb') as f:
+        if get_again_flag == False:                  # Check if the query was executed before prior to performing another query.
+            with open(query_loc, 'rb') as f:
                 data = load(f)
                 return self.convert_query_to_dict(data)
         game_participants = self.fetch_data("""select DISTINCT event_instance.Game_ID, batter_in_event.Batting_Team, 
@@ -259,7 +261,7 @@ class Queries():
                                             inner join pitcher_in_event on pitcher_in_event.idEvent=event_instance.idEvent
                                             inner join batter_in_event on batter_in_event.idEvent=event_instance.idEvent
                                     """)
-        with open(r'C:\Users\micha\Documents\Baseball_Analytics_Source_Data\model_v1\game_pitchers.pickle', 'wb') as f:
+        with open(query_loc, 'wb') as f:
             dump(game_participants, f)
         return self.convert_query_to_dict(game_participants)
 
@@ -331,30 +333,14 @@ class Queries():
         # Function Throws: Nothing
         # Function Returns: A single list containing the features of the game.
 
-        start = timer()
         game_features = []
         home_players = [self.get_starting_pitcher(all_pitcher, game_id, 0)]
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("1." + str(end - start))
         home_players += self.get_starting_batters(all_batters, game_id, 1)
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("2." + str(end - start))
         game_features += self.sub_pitching_features([home_players[0]], game_id)       # Substitute the player names for their features.
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("3." + str(end - start))
         game_features += self.sub_offensive_features(offensive_features, home_players[1:], game_id)
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("4." + str(end - start))
         vis_players = [self.get_starting_pitcher(all_pitcher, game_id, 1)]            # Vice versa.
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("5." + str(end - start))
         vis_players += self.get_starting_batters(all_batters, game_id, 0)
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("6." + str(end - start))
         game_features += self.sub_pitching_features([vis_players[0]], game_id)
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("7." + str(end - start))
         game_features += self.sub_offensive_features(offensive_features, vis_players[1:], game_id)
-        end = timer()           # We want the pitchers in the event facing the Visting Batting Team. 
-        print("8." + str(end - start))
+        if len(game_features) != 60: raise ValueError("The correct number of features was not returned.")
         return game_features

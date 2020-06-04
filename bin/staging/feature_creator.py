@@ -37,26 +37,29 @@ class Offensive_Features(Generic_Features):
         # Function Returns: Nothing
 
         # 10 Day Moving BA, 10 Day OBP, 10 Day SLG
-        offensive_query = """
-                            insert into offensive_features(Game_ID, player_id, Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG)
-                            select A.Game_ID, A.player_id,
-                                round(avg(A.Game_Hits / A.Game_AB) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_BA,
-                                round(avg((A.Game_Hits + A.Game_Walks + A.Game_Hit_By_Pitch) / (A.Game_AB + A.Game_Walks + A.Game_Hit_By_Pitch + A.Game_SF)) 
-                                    over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_OBP, 
-                                round(avg((A.Total_Game_Bases / A.Game_AB)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_SLG 
-                                from (select game_day.Game_ID, game_day.Date, player_information.player_id,
-                                sum(case when event_instance.AB_Flag = 'T' then 1 else 0 end) as Game_AB, 
-                                sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Game_Hits,
-                                sum(case when event_instance.SF_Flag = 'T' then 1 else 0 end) as Game_SF,
-                                sum(event_instance.Hit_Value) as Total_Game_Bases,
-                                sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\\\.|\\\\+).*$|^IW(\\\\.|\\\\+).*$') then 1 else 0 end) as Game_Walks, 
-                                sum(case when regexp_like(event_instance.Event_Text, '^HP.*$') then 1 else 0 end) as Game_Hit_By_Pitch
-                                    from player_information inner join 
-                                    batter_in_event on batter_in_event.Batter_Name = player_information.player_id inner join
-                                    event_instance on event_instance.idEvent = batter_in_event.idEvent inner join
-                                    game_day on event_instance.Game_ID = game_day.Game_ID
-                                        where player_information.player_id = """ + '\'' + player_id + '\'' + '\n group by game_day.Game_ID) as A;'
-        #### NOTE: Some QUERIES WILL FAIL BECAUSE NULL IS RETURNED IN A ROW
+        offensive_query = """insert into offensive_features(Game_ID, player_id, Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG)
+                            select B.Game_ID, B.player_id, B.Ten_Day_BA, B.Ten_Day_OBP, B.Ten_Day_SLG
+                                from
+                                (select A.Game_ID, A.player_id,
+                                    round(avg(A.Game_Hits / A.Game_AB) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_BA,
+                                    round(avg((A.Game_Hits + A.Game_Walks + A.Game_Hit_By_Pitch) / (A.Game_AB + A.Game_Walks + A.Game_Hit_By_Pitch + A.Game_SF)) 
+                                        over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_OBP, 
+                                    round(avg((A.Total_Game_Bases / A.Game_AB)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Day_SLG 
+                                    from (select game_day.Game_ID, game_day.Date, player_information.player_id,
+                                    sum(case when event_instance.AB_Flag = 'T' then 1 else 0 end) as Game_AB, 
+                                    sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Game_Hits,
+                                    sum(case when event_instance.SF_Flag = 'T' then 1 else 0 end) as Game_SF,
+                                    sum(event_instance.Hit_Value) as Total_Game_Bases,
+                                    sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\\\.|\\\\+).*$|^IW(\\\\.|\\\\+).*$') then 1 else 0 end) as Game_Walks, 
+                                    sum(case when regexp_like(event_instance.Event_Text, '^HP.*$') then 1 else 0 end) as Game_Hit_By_Pitch
+                                        from player_information inner join 
+                                        batter_in_event on batter_in_event.Batter_Name = player_information.player_id inner join
+                                        event_instance on event_instance.idEvent = batter_in_event.idEvent inner join
+                                        game_day on event_instance.Game_ID = game_day.Game_ID
+                                            where player_information.player_id = """ + '\'' + player_id + '\'' + """\ngroup by game_day.Game_ID) as A) as B
+                                where B.Ten_Day_BA is not null
+                                and B.Ten_Day_OBP is not null
+                                and B.Ten_Day_SLG is not null;"""
         return self.execute_query(offensive_query)
 
     def create_all_offensive_information(self):
@@ -147,8 +150,8 @@ def main():
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
     off_feat_creator = Offensive_Features(conn)
     off_feat_creator.create_all_offensive_information()                                                          # Create all the offensive and pitcher features.
-    pitch_feat_creator = Pitcher_Features(conn)
-    pitch_feat_creator.create_all_pitcher_information()
+    #pitch_feat_creator = Pitcher_Features(conn)
+    #pitch_feat_creator.create_all_pitcher_information()
 
 if __name__ == "__main__":
     main()
