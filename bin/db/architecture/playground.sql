@@ -7,5 +7,12 @@
 #select * from positional_player_details;
 #INSERT IGNORE INTO positional_player_details (player_id, Last_Name, First_Name, Player_Debut) values ('michael', 'deleteMe', 'deleteMe', '2019-04-23');
 
-select * from offensive_features where offensive_features.Game_ID = 'LAN199007270'
-         
+select event_instance.Game_ID, Year(game_day.date) as Year, Day(game_day.date) as Day,
+       Month(game_day.date) as Month, batter_in_event.Batting_Team,
+       game_day.Home_Team, game_day.Visiting_Team,
+	   pitcher_in_event.Pitcher_Name, pitcher_in_event.idEvent
+	   from event_instance
+	   inner join pitcher_in_event on pitcher_in_event.idEvent=event_instance.idEvent
+	   inner join batter_in_event on batter_in_event.idEvent=event_instance.idEvent
+	   inner join game_day on game_day.Game_ID=event_instance.Game_ID
+       order by game_day.Game_ID, length(event_instance.idEvent), event_instance.idEvent 
