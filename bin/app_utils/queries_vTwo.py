@@ -57,3 +57,27 @@ class Queries():
                                         where event_instance.End_Game_Flag = 'T'
                                         and not (day(game_day.Date) < {} and month(game_day.Date) < {})
                                         order by game_day.Date, game_day.Game_ID;""".format(day, month)))
+
+    def unpack_pitchers(self, pitcher_query):
+
+        # Function Description: The function will perform basic exploratory observations within the pitchers data structure.
+        # Function Parameters: pitcher_query (The pitcher dictionary with all the pitcher names.)
+        # Function Throws: Nothing
+        # Function Returns: Nothing - The function will print information about the query structure. 
+
+        for team in pitcher_query:
+            all_team = pitcher_query[team]
+            for year in all_team:
+                all_year = all_team[year]
+                for game in all_year:
+                    all_game = all_year[game]
+                    for event in all_game:
+                        print("An Event {}".format(event))
+                        break
+                    print("Num Events {}".format(len(all_game)))
+                    break
+                print("Num Games {}".format(len(all_year)))
+                break
+            print("Num Years {}".format(len(all_team)))
+            break
+        print("Num Teams {}".format(len(pitcher_query)))
