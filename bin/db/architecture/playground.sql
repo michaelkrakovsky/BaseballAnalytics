@@ -15,4 +15,6 @@ select event_instance.Game_ID, Year(game_day.date) as Year, Day(game_day.date) a
 	   inner join pitcher_in_event on pitcher_in_event.idEvent=event_instance.idEvent
 	   inner join batter_in_event on batter_in_event.idEvent=event_instance.idEvent
 	   inner join game_day on game_day.Game_ID=event_instance.Game_ID
-       order by game_day.Game_ID, length(event_instance.idEvent), event_instance.idEvent 
+       where Year(game_day.Date) = 1997 
+       and (game_day.Home_Team = 'ANA' or game_day.Visiting_Team = 'ANA')
+       group by game_day.Game_ID
