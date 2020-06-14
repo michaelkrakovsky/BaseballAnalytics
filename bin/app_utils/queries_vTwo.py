@@ -125,8 +125,8 @@ class Queries():
             vis_team = row[6]
             pitcher_name = row[7]
             event_id = row[8]
-            if batting_team == 1:                        # Add home pitchers to the proper game depending on home team or away team. Home Team = 1
-                self.add_event(home_team, year, query_dict, game_id, pitcher_name, event_id)
+            if batting_team == 0:                        # Add home pitchers to the proper game depending on home team or away team. Home Team = 1
+                self.add_event(home_team, year, query_dict, game_id, pitcher_name, event_id)     # We need to invert the outcomes. If the away team is batting, then the home team is pitching.
             else:
                 self.add_event(vis_team, year, query_dict, game_id, pitcher_name, event_id)
         return query_dict
