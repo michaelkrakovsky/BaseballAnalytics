@@ -125,7 +125,7 @@ class Queries():
             vis_team = row[6]
             pitcher_name = row[7]
             event_id = row[8]
-            if batting_team == '1':                        # Add home pitchers to the proper game depending on home team or away team.
+            if batting_team == 1:                        # Add home pitchers to the proper game depending on home team or away team. Home Team = 1
                 self.add_event(home_team, year, query_dict, game_id, pitcher_name, event_id)
             else:
                 self.add_event(vis_team, year, query_dict, game_id, pitcher_name, event_id)
@@ -141,7 +141,7 @@ class Queries():
 
         # Home Team equals 1 for Batting Team. The query is formatted like such: 
         #     Game_ID, Batter_Name, Batting_Team, idEvent
-        
+
         if get_again_flag == False:                  # Check if the query was executed before prior to performing another query.
             with open(query_loc, 'rb') as f:
                 data = load(f)
@@ -155,6 +155,5 @@ class Queries():
                                             inner join batter_in_event on batter_in_event.idEvent=event_instance.idEvent
                                             inner join game_day on game_day.Game_ID=event_instance.Game_ID
                                     """)
-        with open(query_loc, 'wb') as f:
-            dump(game_participants, f)
+        with open(query_loc, 'wb') as f: dump(game_participants, f)
         return self.pitcher_query_to_dict(game_participants)
