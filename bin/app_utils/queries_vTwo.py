@@ -157,3 +157,150 @@ class Queries():
                                     """)
         with open(query_loc, 'wb') as f: dump(game_participants, f)
         return self.pitcher_query_to_dict(game_participants)
+
+    def process_game(self, game_events):
+
+        """Function Description: Process a game by capturing all the pitchers who participated for the team.
+        Function Parameters: game_events (The events related to the specific game.)
+        Function Throws: Nothing
+        Function Returns: A dictionary formatted like such. {pitcher_name : [num_instances, apearance_in_game]}"""
+
+        game_events.sort(key=lambda x: int(search(r'\d+', x[1][:3]).group()))      # Sort the string by the leading numbers of each id.
+        game_profile = {}
+        num_instance = 1
+        for event in game_events:
+            pitcher_name = event[0]
+            if pitcher_name not in game_profile:                    # If a new pitcher is observed, add it to the dictionary.
+                game_profile[pitcher_name] = [1, num_instance]
+                num_instance += 1
+            else:
+                game_profile[pitcher_name][0] += 1
+        return game_profile 
+
+    def add_pitcher_to_dict(self, dictionary, pitcher, innings):
+
+        """Function Description: Add a pitcher to the dictionary related to the aggregation function.
+        Function Parameters: dictionary (The dictionary to add the pitcher.), 
+            pitcher (The pitcher to be added.), innings The innings the pitcher plays.
+        Function Throws: Nothing
+        Function Returns: Nothing
+        """
+        if pitcher not in dictionary:
+            dictionary[pitcher] = innings
+        else:
+            dictionary[pitcher] += innings
+
+    def order_pitchers(self, pitcher_appearences):
+
+        """Function Description: Order the pitchers from most innings played to least.
+        Function Parameter: pitcher_appearences (The dictionary of pitchers who participated in the games.)
+        Function Throws: Nothing
+        Function Returns: The list of pitchers."""
+
+        # TO OPTIMISE: IMPLEMENT A MAX HEAP TO REDUCE O(n^2) to O(n)
+        pitchers = []
+        for _ in range(0, len(pitcher_appearences)):
+            max = 0
+            max_pitcher = ""
+            for pitcher, num in pitcher_appearences.items():
+                if num > max:
+                    max = num
+                    max_pitcher = pitcher
+            pitchers.append(max_pitcher)
+            del pitcher_appearences[max_pitcher]
+        return pitchers
+
+    def get_pitchers_in_window(self, games):
+
+        """Function Description: Given the pitchers in a window, determine the entire pitching roster.
+        Function Parameters: games (The games to be processed.)
+        Function Throws: Nothing
+        Function Returns: A tuple of lists containing the pitchers ordered by number of innings played.
+            The first element contains the starting pitchers. The second element contains the relief pitchers."""
+
+        starter_total_innings = {}
+        relief_total_inings = {}
+        for game in games:
+            game_pitchers = game[1]                                                   # Here are the pitchers in the game.
+            for pitcher in game_pitchers:                                             # Aggregate the pitchers within the rosters by number of appearances and position.
+                if game_pitchers[pitcher][1] == 1:                                    # If the appearance number equals 1, then it is a starting pitcher. 
+                    self.add_pitcher_to_dict(starter_total_innings, pitcher, game_pitchers[pitcher][0])
+                else:
+                    relief_total_inings[pitcher] = game_pitchers[pitcher][0]
+        return (self.order_pitchers(starter_total_innings), self.order_pitchers(relief_total_inings)) 
+
+    def get_unique_relief_pitchers(self, starting_pitchers, relief_pitchers):
+
+        """Function Description: Only retrieve pitchers that are dedicated relief pitchers.
+        Function Parameters: starting_pitchers (The pitchers who started in the window size.), 
+            relief_pitchers (Pitchers who were relievers in the window size.)
+        Function Throws: Nothing
+        Function Returns: Pitchers that only existed as relief pitchers."""
+
+        only_relief = []
+        for relief in relief_pitchers:
+            if relief not in starting_pitchers:
+                only_relief.append(relief)
+        return only_relief
+
+    def tie_relievers_to_games(self, relief_games, relief_profile, games):
+
+        """Function Description: Prepare the data in which it can be shipped to the model.
+        Function Parameters: relief_games (The existing dictionary containing the relief pitchers.)
+            relief_profile (The final relief pitchers to be appended to the model.), 
+            games (The games that was used within the model.)
+        Function Throws: Nothing
+        Function Returns: A dictionary containing the games and the pitchers who participated. {game_id : [relief_pitchers]}"""
+
+        for game in games:
+            relief_games[game[0]] = relief_profile          # game[0] contains the game id.
+        return relief_games
+
+    def process_year(self, year_games, window_size=40):
+
+        """Function Description: Process a year of players compiling all the rosters into their respective windows.
+        Function Parameters: year_games (The dictionary containing all the games and their events), 
+            window_size (The size of the window to consolidate all the players.)
+        Function Throws: Nothing
+        Function Returns: A dictionary containing the games and the expected roster. {game_id : {pitcher_one, pitcher_two, ..., pitcher_n}}"""
+
+        agg_pitchers = [[game_id, self.process_game(year_games[game_id])] for game_id in year_games]
+        agg_pitchers.sort(key=lambda x: x[0][3:])        # Sort the string by the ending game digits.
+        window_min = 0
+        window_max = window_size
+        relief_games = {}
+        while window_max <= len(year_games):             # Find the pitchers on the roster within the desired time frame.
+            if (162 - window_max) < 20:                  # Just add the final games as to not create a small window.
+                window_max = len(year_games)
+            starting_pitchers, relief_pitchers = self.get_pitchers_in_window(agg_pitchers[window_min:window_max])
+            relief_pitchers = self.get_unique_relief_pitchers(starting_pitchers, relief_pitchers)
+            self.tie_relievers_to_games(relief_games, relief_pitchers, agg_pitchers[window_min:window_max])
+            window_min = window_max
+            window_max += window_size                    # We will eventually get out of the loop with these increments.
+        return relief_games
+        
+    def get_relief_pitchers(self, pitchers, window_size=40):
+
+        """# Function Description: Retrieve all the pitchers who participated on the teams starting lineup.
+            The function will all correct for the fewest number of players to appear in the games. For instance, 
+            if only three relievers participated in the last n games, then all profiles will contain the top three most prevelant relievers.
+        # Function Parameters: pitchers (The dictionary containing all the pitchers.), 
+        #    window_size (The pitchers on the roster within the specified timeframe.)
+        # Function Throws: Nothing
+        # Function Returns: A dictionary containing the pitcher names within the specified time frame."""
+
+        relief_pitchers = {}
+        for team in pitchers:
+            for year in pitchers[team]:
+                temp = self.process_year(pitchers[team][year], window_size)
+                relief_pitchers = {**relief_pitchers, **temp}
+        num_relievers = []
+        for game in relief_pitchers:                    # Find the number of relievers in all window sizes.
+            if len(relief_pitchers[game]) not in num_relievers:
+                num_relievers.append(len(relief_pitchers[game]))
+        num_relievers = min(num_relievers)
+        print("The number of relievers to contian: {}".format(num_relievers))
+        new_relief_pitchers = {}                        # Ensure all relievers in the games are the same.
+        for game in relief_pitchers:
+            new_relief_pitchers[game] = relief_pitchers[game][:num_relievers]
+        return new_relief_pitchers
