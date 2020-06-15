@@ -170,7 +170,7 @@ class Queries():
         num_instance = 1
         for event in game_events:
             pitcher_name = event[0]
-            if pitcher_name not in game_profile:                    # If a new pitcher is observed, add it to the dictionary.
+            if pitcher_name not in game_profile:                                   # If a new pitcher is observed, add it to the dictionary.
                 game_profile[pitcher_name] = [1, num_instance]
                 num_instance += 1
             else:
@@ -243,23 +243,28 @@ class Queries():
                 only_relief.append(relief)
         return only_relief
 
-    def tie_relievers_to_games(self, relief_games, relief_profile, games):
+    def tie_relievers_to_games(self, relief_games, relief_profile, games, team):
 
         """Function Description: Prepare the data in which it can be shipped to the model.
         Function Parameters: relief_games (The existing dictionary containing the relief pitchers.)
             relief_profile (The final relief pitchers to be appended to the model.), 
-            games (The games that was used within the model.)
+            games (The games that was used within the model.), 
+            team (The team that contains the relief pitchers.)
         Function Throws: Nothing
         Function Returns: A dictionary containing the games and the pitchers who participated. {game_id : [relief_pitchers]}"""
 
         for game in games:
-            relief_games[game[0]] = relief_profile          # game[0] contains the game id.
+            if game[0] not in relief_games:
+                relief_games[game[0]] = {team : relief_profile}
+            else:
+                relief_games[game[0]][team] = relief_profile
         return relief_games
 
-    def process_year(self, year_games, window_size=40):
+    def process_year(self, year_games, relief_games, team, window_size=40):
 
         """Function Description: Process a year of players compiling all the rosters into their respective windows.
         Function Parameters: year_games (The dictionary containing all the games and their events), 
+            team (The team that contains the relief pitchers.)
             window_size (The size of the window to consolidate all the players.)
         Function Throws: Nothing
         Function Returns: A dictionary containing the games and the expected roster. {game_id : {pitcher_one, pitcher_two, ..., pitcher_n}}"""
@@ -268,16 +273,14 @@ class Queries():
         agg_pitchers.sort(key=lambda x: x[0][3:])        # Sort the string by the ending game digits.
         window_min = 0
         window_max = window_size
-        relief_games = {}
         while window_max <= len(year_games):             # Find the pitchers on the roster within the desired time frame.
             if (162 - window_max) < 20:                  # Just add the final games as to not create a small window.
                 window_max = len(year_games)
             starting_pitchers, relief_pitchers = self.get_pitchers_in_window(agg_pitchers[window_min:window_max])
             relief_pitchers = self.get_unique_relief_pitchers(starting_pitchers, relief_pitchers)
-            self.tie_relievers_to_games(relief_games, relief_pitchers, agg_pitchers[window_min:window_max])
+            self.tie_relievers_to_games(relief_games, relief_pitchers, agg_pitchers[window_min:window_max], team)
             window_min = window_max
             window_max += window_size                    # We will eventually get out of the loop with these increments.
-        return relief_games
         
     def get_relief_pitchers(self, pitchers, window_size=40):
 
@@ -289,18 +292,41 @@ class Queries():
         # Function Throws: Nothing
         # Function Returns: A dictionary containing the pitcher names within the specified time frame."""
 
-        relief_pitchers = {}
+        relief_games = {}
         for team in pitchers:
             for year in pitchers[team]:
-                temp = self.process_year(pitchers[team][year], window_size)
-                relief_pitchers = {**relief_pitchers, **temp}
+                self.process_year(pitchers[team][year], relief_games, team, window_size)
         num_relievers = []
-        for game in relief_pitchers:                    # Find the number of relievers in all window sizes.
-            if len(relief_pitchers[game]) not in num_relievers:
-                num_relievers.append(len(relief_pitchers[game]))
+        for game in relief_games:                    # Find the number of relievers in all window sizes.
+            for team in relief_games[game]:
+                if len(relief_games[game][team]) not in num_relievers:
+                    num_relievers.append(len(relief_games[game][team]))
         num_relievers = min(num_relievers)
         print("The number of relievers to contian: {}".format(num_relievers))
-        new_relief_pitchers = {}                        # Ensure all relievers in the games are the same.
-        for game in relief_pitchers:
-            new_relief_pitchers[game] = relief_pitchers[game][:num_relievers]
+        new_relief_pitchers = {}                     # Ensure all relievers in the games are the same.
+        for game in relief_games:
+            for team in relief_games[game]:
+                if game not in new_relief_pitchers:
+                    new_relief_pitchers[game] = {team : relief_games[game][team][:num_relievers]}
+                else:
+                    new_relief_pitchers[game][team] = relief_games[game][team][:num_relievers]
         return new_relief_pitchers
+
+    def get_starting_pitchers(self, pitchers):
+
+        """# Function Description: Get starting pitchers from all games from both away and home teams.
+        # Function Parameters: pitchers (The dictionary containing all the pitchers.), 
+        # Function Throws: Nothing
+        # Function Returns: A dictionary containing the starting pitchers attatched to each game id."""
+
+        starting_pitchers = {}
+        for team in pitchers:
+            for year in pitchers[team]:
+                for game_id in pitchers[team][year]:
+                    game_events = pitchers[team][year][game_id].copy() 
+                    game_events.sort(key=lambda x: int(search(r'\d+', x[1][:3]).group()))      # Sort the string by the leading numbers of each id.
+                    if game_id not in starting_pitchers:
+                        starting_pitchers[game_id] = {team : game_events[0][0]}                # The first event will contain the starting pitcher.
+                    else:
+                        starting_pitchers[game_id][team] = game_events[0][0] 
+        return starting_pitchers
