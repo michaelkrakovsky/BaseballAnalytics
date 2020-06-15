@@ -38,6 +38,23 @@ class Queries():
             print("The query {}".format(query))
             raise Exception("A fire is buring in fetch_data.")
 
+    def convert_query_to_dict(self, data):
+        
+        # Function Description: Convert the data from a query into a dictionay to be indexed.
+        #    The game id MUST BE the first value in the column.
+        # Function Parameters: data (The data that was extractred from the query.)
+        # Function Throws: Nothing
+        # Function Returns: The dictionary containing a list of events associated with the Game Id
+        
+        query_dict = {}
+        for row in data:
+            if row[0] not in query_dict:
+                query_dict[row[0]] = [list(row[1:])]
+            else:
+                game_list = query_dict[row[0]]
+                game_list.append(list(row[1:]))
+        return query_dict
+
     def get_game_outcomes(self, day=1, month=1):
 
         # Function Description: The function will retrieve the game outcomes with the date formatted in separated columns. In addition, 
@@ -57,6 +74,24 @@ class Queries():
                                         where event_instance.End_Game_Flag = 'T'
                                         and not (day(game_day.Date) < {} and month(game_day.Date) < {})
                                         order by game_day.Date, game_day.Game_ID;""".format(day, month)))
+
+    def org_by_player_then_game(self, features):
+
+        # Function Description: The function will organise a raw query into a dictionary of lists. The lists within the dictionary are organised from oldest to greatest.
+        # Function Parameters: features (The features that must be organised. Note, the Game_ID must be located in the first column 
+        #    while the player_id is located in the second column.)
+        # Function Throws: Nothing
+        # Function Returns: The dictionary of lists where the GameID within the list are ordered.
+
+        org_features = {}
+        for feature in features:                 # Create the dict of lists of lists where lists are stored as uner the player id.
+            player_id = feature[1]
+            if player_id not in org_features: 
+                org_features[player_id] = [[feature[0]] + [float(i) for i in feature[2:]]]         # Intiate the first player value.
+            else: 
+                temp_list = org_features[player_id]
+                temp_list.append([feature[0]] + [float(i) for i in feature[2:]])                   # Append to that order.
+        return org_features
 
     def unpack_pitchers(self, pitcher_query):
 
@@ -330,3 +365,74 @@ class Queries():
                     else:
                         starting_pitchers[game_id][team] = game_events[0][0] 
         return starting_pitchers
+
+    def get_batters(self, query_loc, get_again_flag=False):
+
+        # Function Description: The function returns only the players and the starting pitcher with the respective game ids. This will be the first attempt of gathering
+        #    the starting lineup.
+        # Function Parameters: query_loc (The location of results of previous queries.), 
+        #    get_again_flag (The function will talk to the database once again and replace the results. (CI))
+        # Function Throws: Nothing
+        # Function Returns: A tuple containing two lists. The first list contains the home team names while the second list contains the away teams.
+
+        # Home Team equals 1 for Batting Team. The query is formatted like such: 
+        #     Game_ID, Batter_Name, Batting_Team, idEvent
+        
+        if get_again_flag == False:                  # Check if the query was executed before prior to performing another query.
+            with open(query_loc, 'rb') as f:
+                data = load(f)
+                return self.convert_query_to_dict(data)
+        game_participants = self.fetch_data("""select event_instance.Game_ID, batter_in_event.Batter_Name, 
+                                        batter_in_event.Batting_Team, batter_in_event.idEvent 
+                                        from batter_in_event 
+                                        inner join event_instance on batter_in_event.idEvent=event_instance.idEvent
+                                    """)
+        with open(query_loc, 'wb') as f:
+            dump(game_participants, f)
+        return self.convert_query_to_dict(game_participants)
+
+    def get_all_offensive_features(self, query_loc, get_again_flag=False):
+
+        # Function Description: Retrieve the features all batters after the specified game id.
+        # Function Parameters: query_loc (The location of results of previous queries.), 
+        #    get_again_flag (The function will call the database overwriting the results. (CI))
+        # Function Throws: Nothing
+        # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
+        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+
+        if get_again_flag == False:                  # Use the information already provided.
+            with open(query_loc, 'rb') as f:
+                data = load(f)
+                return self.org_by_player_then_game(data)
+        # Else, execute the query and recalulate.
+        features = self.fetch_data("""                        
+                                select offensive_features.Game_ID, offensive_features.player_id, 
+                                Ten_Rolling_OBP, Ten_Rolling_SLG from offensive_features inner join
+                                game_day on game_day.Game_ID=offensive_features.Game_ID
+                                order by game_day.Date asc
+                                """)        
+        with open(query_loc, 'wb') as f: dump(features, f)
+        return self.org_by_player_then_game(features)
+
+    def get_all_pitching_features(self, query_loc, get_again_flag=False):
+
+        # Function Description: Retrieve the features all pitchers after the specified game id.
+        # Function Parameters: query_loc (The location of results of previous queries.), 
+        #    get_again_flag (The function will call the database overwriting the results. (CI))
+        # Function Throws: Nothing
+        # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
+        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+
+        if get_again_flag == False:                  # Use the information already provided.
+            with open(query_loc, 'rb') as f:
+                data = load(f)
+                return self.org_by_player_then_game(data)
+        # Else, execute the query and recalulate.
+        features = self.fetch_data("""                        
+                                select pitching_features.Game_ID, pitching_features.player_id,
+                                Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA from pitching_features inner join
+                                game_day on game_day.Game_ID=pitching_features.Game_ID
+                                order by game_day.Date Asc;
+                                """)        
+        with open(query_loc, 'wb') as f: dump(features, f)
+        return self.org_by_player_then_game(features)

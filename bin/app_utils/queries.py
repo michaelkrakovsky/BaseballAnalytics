@@ -221,7 +221,7 @@ class Queries():
         #    the starting lineup.
         # Function Parameters: query_loc (The location of results of previous queries.), 
         #    get_again_flag (The function will talk to the database once again and replace the results. (CI))
-        # Function Throws: Nothing222
+        # Function Throws: Nothing
         # Function Returns: A tuple containing two lists. The first list contains the home team names while the second list contains the away teams.
 
         # Home Team equals 1 for Batting Team. The query is formatted like such: 
