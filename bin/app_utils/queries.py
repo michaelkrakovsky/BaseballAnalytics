@@ -297,7 +297,7 @@ class Queries():
                                     """.format(player_id, game_id))
         if len(features) < 2:                              # I reduced the number of previous games for pitcher by half.
             return [-1, -1, -1]
-        return list(features[0])                           # Return the first row which contains the data from the previous day.                         # Return the first row which contains the data from the previous day.
+        return list(features[0])                           # Return the first row which contains the data from the previous day.
 
     def sub_pitching_features(self, pitchers, game_id):
 

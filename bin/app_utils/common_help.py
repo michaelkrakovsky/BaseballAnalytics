@@ -9,7 +9,7 @@ class Log_Helper():
 
     def __init__(self):
 
-        # Class Description: The class will contain functions related to printing messages to the console.
+        """Class Description: The class will contain functions related to printing messages to the console."""
 
         self.log_folder = Path('BaseballAnalytics/logs/')                    # The path to the generic log folder.
 
