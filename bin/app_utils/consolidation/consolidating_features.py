@@ -34,10 +34,10 @@ class Feature_Consolidater():
     def get_starting_pitcher(self, starting_pitchers, game_id, pitcher_team):
 
         # Function Description: Extract the starting pitcher of the game.
-        # Function Parameters: starting_pitchers (The dictionary containing all the games with their starting.), 
-        #    game_id (The game id you wish to extract the betting lineup.), pitcher_team (The team the pitcher who plays on the team.)
+        # Function Parameters: starting_pitchers (The dictionary containing all the games with their starters.), 
+        #    game_id (The game id you wish to extract the betting lineup.), pitcher_team (The team of the pitcher who plays on the team.)
         # Function Throws: Nothing
-        # Function Returns: The pitcher of the starting pitcher.
+        # Function Returns: The starting pitcher.
 
         return starting_pitchers[game_id][pitcher_team]
 
