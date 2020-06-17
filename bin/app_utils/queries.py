@@ -128,7 +128,7 @@ class Queries():
     def get_starting_pitcher(self, pitchers, game_id, team_batting):
 
         # Function Description: Givin all the batting events in a game, extract the starting the lineup.
-        # Function Parameters: batting_players (The dictionary containing all the events from all games.), 
+        # Function Parameters: pitchers (The dictionary containing all the events from all games.), 
         #    game_id (The game id you wish to extract the betting lineup.), team_batting (The batting team: The Visting Team is 0, the Home Team is 1.)
         # Function Throws: Nothing
         # Function Returns: The list of players in the batting lineup.
