@@ -102,9 +102,9 @@ class Pitcher_Features(Generic_Features):
                             insert into pitching_features(Game_ID, player_id, Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA)
                             select B.Game_ID, B.player_id, B.Ten_Rolling_Ks, B.Ten_Rolling_WHIP, B.Ten_Rolling_RA
                             from (select A.Game_ID, A.player_id,
-                            round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_Ks,
-                            round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_WHIP, 
-                            round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_RA 
+                            round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 3) as Ten_Rolling_Ks,
+                            round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 3) as Ten_Rolling_WHIP, 
+                            round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 3) as Ten_Rolling_RA 
                             from (select game_day.Game_ID, game_day.Date, player_information.player_id,
                             sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
                             sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,

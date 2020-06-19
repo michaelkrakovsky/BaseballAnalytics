@@ -17,12 +17,12 @@ order by game_day.Date Asc;
 #delete from pitching_features;
 #select count(*) from pitching_features;
 #select * from pitching_features where player_id = 'astap001';
-#insert into pitching_features(Game_ID, player_id, Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA)
+insert into pitching_features(Game_ID, player_id, Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA)
 select B.Game_ID, B.player_id, B.Ten_Rolling_Ks, B.Ten_Rolling_WHIP, B.Ten_Rolling_RA
 from (select A.Game_ID, A.player_id,
-round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 4) as Ten_Rolling_Ks,
-round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_WHIP, 
-round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_RA 
+round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 3) as Ten_Rolling_Ks,
+round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 3) as Ten_Rolling_WHIP, 
+round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 3) as Ten_Rolling_RA 
 from (select game_day.Game_ID, game_day.Date, player_information.player_id,
 sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
 sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
@@ -39,7 +39,7 @@ Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
 	left join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
 	left join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
 	left join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
-		where player_information.player_id = 'astap001'
+		where player_information.player_id = 'bookc001'
 	group by game_day.Game_ID) as A) as B
 where B.Ten_Rolling_Ks is not null
 and B.Ten_Rolling_WHIP is not null

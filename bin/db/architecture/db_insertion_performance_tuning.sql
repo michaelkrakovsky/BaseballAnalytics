@@ -1,4 +1,4 @@
-SET SQL_SAFE_UPDATES = 0;           # This allows you drop tables.
+SET SQL_SAFE_UPDATES = 1;           # This allows you drop tables.
 #SET foreign_key_checks = 1;         # This drops all foreign key checks.
 #SET GLOBAL innodb_buffer_pool_size=268435456‬‬‬;
 #show variables like 'innodb_buffer_pool_size%';
