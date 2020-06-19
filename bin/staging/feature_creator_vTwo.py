@@ -139,10 +139,13 @@ class Pitcher_Features(Generic_Features):
         lh = Log_Helper()
         player_ids = qs.get_all_player_ids()
         total_player_ids = len(player_ids)
+        log_file = lh.create_log_file(self.log_folder, 'feature_creator_vTwo')
         start = timer()
         lh.print_progress_bar(0, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)           # Initial call to print 0% progress
-        for num, id in enumerate(player_ids):                           # Find the offensive stats for every player.
-            self.insert_pitcher_information(id[0])
+        for num, id in enumerate(player_ids):                                # Find the offensive stats for every player.
+            status = self.insert_pitcher_information(id[0])
+            if status == False:                                              # Log errors.
+                lh.log_error_in_file(log_file, "\nFailed at id: " + str(id))
             lh.print_progress_bar(num + 1, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
         end = timer()
         print("Total processing time to create all pitching features: " + str(end - start))

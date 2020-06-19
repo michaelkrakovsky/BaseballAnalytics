@@ -13,6 +13,7 @@ class Generic_Features():
             self.__db_connection__ = db_connection
         else:
             raise ValueError("The user did not provide the correct pymysql connector.")
+        self.log_folder = 'feature_creator_logs'
 
     def execute_query(self, query):
 
@@ -24,16 +25,15 @@ class Generic_Features():
         cursor = self.__db_connection__.cursor() 
         filterwarnings('error')                                     # Convert warnings into exceptions to be caught.                   
         try:
-            status = cursor.execute(query)                          # Execute Query: And close the cursor.
+            cursor.execute(query)                                   # Execute Query: And close the cursor.
             self.__db_connection__.commit()                         # This essentially saves the query execution to the database.
         except Exception as ex:
             status_str = str(ex)
             status_num = status_str[1:5]
             if status_num == '1265':                                 # Commit the query if it matches the appropriate status number.
-                status = 1
                 self.__db_connection__.commit() 
             else:
-                status = 0
+                return False
         filterwarnings('always')                                    # Turn the filter for warnings back on.
         cursor.close()
-        return bool(status)
+        return True
