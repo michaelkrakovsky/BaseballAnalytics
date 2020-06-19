@@ -97,30 +97,35 @@ class Pitcher_Features(Generic_Features):
         # Function Throws: Nothing
         # Function Returns: Nothing
 
-        # 10 Day Ks, 10 Day WHIP, 10 Day RA
+        # 10 Day Ks, 10 Day WHIP, 10 Day RA        
         pitching_query = """
-                    insert into pitching_features(Game_ID, player_id, Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA)
-                    select A.Game_ID, A.player_id,
-                    round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_Ks,
-                    round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_WHIP, 
-                    round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_RA 
-                        from (select game_day.Game_ID, game_day.Date, player_information.player_id,
-                        sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
-                        sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
-                        sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\\\.|\\\\+).*$|^IW(\\\\.|\\\\+).*$') then 1 else 0 end) as Num_Walks,
-                        sum(case when runner_on_first_details.Runner_On_1st_Dest > 3 then 1 else 0 end) as Runs_From_First,
-                        sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3  then 1 else 0 end) as Runs_From_Second,
-                        sum(case when runner_on_third_details.Runner_On_3rd_Dest > 3 then 1 else 0 end) as Runs_From_Third,
-                        sum(case when event_instance.Batter_Dest > 3 then 1 else 0 end) as Runs_From_Home,
-                        Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
-                            from event_instance
-                            inner join pitcher_in_event on event_instance.idEvent=pitcher_in_event.idEvent
-                            inner join game_day on event_instance.Game_ID=game_day.Game_ID
-                            inner join player_information on player_information.player_id=pitcher_in_event.Pitcher_Name
-                            left join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
-                            left join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
-                            left join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
-                                where player_information.player_id = """ + '\'' + player_id + '\'' + """\ngroup by game_day.Game_ID) as A;"""
+                            insert into pitching_features(Game_ID, player_id, Ten_Rolling_Ks, Ten_Rolling_WHIP, Ten_Rolling_RA)
+                            select B.Game_ID, B.player_id, B.Ten_Rolling_Ks, B.Ten_Rolling_WHIP, B.Ten_Rolling_RA
+                            from (select A.Game_ID, A.player_id,
+                            round(avg(A.Num_Strikeouts) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_Ks,
+                            round(avg((A.Num_Hits + A.Num_Walks) / A.Num_Innings) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_WHIP, 
+                            round(avg((A.Runs_From_First + A.Runs_From_Second + A.Runs_From_Third + A.Runs_From_Home)) over (Order by A.Date rows between 9 preceding and current row), 5) as Ten_Rolling_RA 
+                            from (select game_day.Game_ID, game_day.Date, player_information.player_id,
+                            sum(case when event_instance.Event_Type = '3' then 1 else 0 end) as Num_Strikeouts,
+                            sum(case when event_instance.Hit_Value > 0 then 1 else 0 end) as Num_Hits,
+                            sum(case when regexp_like(event_instance.Event_Text, '^W$|^IW$|^W(\\\\.|\\\\+).*$|^IW(\\\\.|\\\\+).*$') then 1 else 0 end) as Num_Walks,
+                            sum(case when runner_on_first_details.Runner_On_1st_Dest > 3 then 1 else 0 end) as Runs_From_First,
+                            sum(case when runner_on_second_details.Runner_On_2nd_Dest > 3  then 1 else 0 end) as Runs_From_Second,
+                            sum(case when runner_on_third_details.Runner_On_3rd_Dest > 3 then 1 else 0 end) as Runs_From_Third,
+                            sum(case when event_instance.Batter_Dest > 3 then 1 else 0 end) as Runs_From_Home,
+                            Truncate(sum((event_instance.Outs_on_Play) / 3), 2) as Num_Innings
+                                from event_instance
+                                inner join pitcher_in_event on event_instance.idEvent=pitcher_in_event.idEvent
+                                inner join game_day on event_instance.Game_ID=game_day.Game_ID
+                                inner join player_information on player_information.player_id=pitcher_in_event.Pitcher_Name
+                                left join runner_on_first_details on runner_on_first_details.idEvent=event_instance.idEvent
+                                left join runner_on_second_details on runner_on_second_details.idEvent=event_instance.idEvent
+                                left join runner_on_third_details on runner_on_third_details.idEvent=event_instance.idEvent
+                                    where player_information.player_id = """ + '\'' + player_id + '\' ' + """
+                                group by game_day.Game_ID) as A) as B
+                            where B.Ten_Rolling_Ks is not null
+                            and B.Ten_Rolling_WHIP is not null
+                            and B.Ten_Rolling_RA is not null;"""        
         return self.execute_query(pitching_query)
 
     def create_all_pitcher_information(self):
@@ -147,10 +152,10 @@ def main():
     # Function Description: Create a database connection and process event files. 
 
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
-    off_feat_creator = Offensive_Features(conn)
-    off_feat_creator.create_all_offensive_information()                                                          # Create all the offensive and pitcher features.
-    #pitch_feat_creator = Pitcher_Features(conn)
-    #pitch_feat_creator.create_all_pitcher_information()
+    #off_feat_creator = Offensive_Features(conn)
+    #off_feat_creator.create_all_offensive_information()                                                          # Create all the offensive and pitcher features.
+    pitch_feat_creator = Pitcher_Features(conn)
+    pitch_feat_creator.create_all_pitcher_information()
 
 if __name__ == "__main__":
     main()
