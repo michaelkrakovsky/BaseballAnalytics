@@ -84,18 +84,18 @@ class Pitcher_Features(Generic_Features):
 
     def __init__(self, db_connection):
 
-        # Class Description: The class will direct the queries in creating the stats related to Pitchers. Assume that the 
+        """# Class Description: The class will direct the queries in creating the stats related to Pitchers. Assume that the 
         #    tables will be created prior to the insertion of the stats.
-        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.)
+        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.)"""
 
         Generic_Features.__init__(self, db_connection)
 
     def insert_pitcher_information(self, player_id):
 
-        # Function Description: The query will insert all the necessary pitching information (the basis at least) into the database.
+        """# Function Description: The query will insert all the necessary pitching information (the basis at least) into the database.
         # Function Parameters: player_id (The player for who's values you wish to retrieve.)
         # Function Throws: Nothing
-        # Function Returns: Nothing
+        # Function Returns: Nothing"""
 
         # 10 Day Ks, 10 Day WHIP, 10 Day RA        
         pitching_query = """
@@ -130,10 +130,10 @@ class Pitcher_Features(Generic_Features):
 
     def create_all_pitcher_information(self):
 
-        # Function Description: The orchestration function which fills the pitching features with all information for each player.
+        """# Function Description: The orchestration function which fills the pitching features with all information for each player.
         # Function Parameters: Nothing
         # Function Throws: Nothing
-        # Function Returns: Nothing
+        # Function Returns: Nothing"""
 
         qs = Queries(self.__db_connection__)
         lh = Log_Helper()
@@ -145,14 +145,14 @@ class Pitcher_Features(Generic_Features):
         for num, id in enumerate(player_ids):                                # Find the offensive stats for every player.
             status = self.insert_pitcher_information(id[0])
             if status == False:                                              # Log errors.
-                lh.log_error_in_file(log_file, "\nFailed at id: " + str(id))
+                lh.log_error_in_file(log_file, "\nFailed at id: " + str(id[0]))
             lh.print_progress_bar(num + 1, total_player_ids, prefix = 'Progress:', suffix = 'Complete', length = 50)      # Manipulate Error Bar.
         end = timer()
         print("Total processing time to create all pitching features: " + str(end - start))
 
 def main():
 
-    # Function Description: Create a database connection and process event files. 
+    """ #Function Description: Create a database connection and process event files."""
 
     conn = connect(host="localhost", user="root", passwd="praquplDop#odlg73h?c", db="baseball_stats_db")         # The path to the pymysql connector to access the database.
     #off_feat_creator = Offensive_Features(conn)

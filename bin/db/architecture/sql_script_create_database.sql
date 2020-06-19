@@ -654,7 +654,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `Baseball_Stats_DB`.`Pitching_Features` (
   `Game_ID` VARCHAR(45) NOT NULL,
   `player_id` VARCHAR(45) NOT NULL,
-  `Ten_Rolling_Ks` DECIMAL(7,6) NOT NULL,
+  `Ten_Rolling_Ks` DECIMAL(6,3) NOT NULL,
   `Ten_Rolling_WHIP` DECIMAL(7,6) NOT NULL,
   `Ten_Rolling_RA` DECIMAL(7,6) NOT NULL,
   PRIMARY KEY (`Game_ID`, `player_id`),
