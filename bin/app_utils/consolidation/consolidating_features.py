@@ -150,6 +150,48 @@ class Feature_Consolidater():
             pitcher_features += self.get_pitchers_features(pitching_features, pitcher, game_id)
         return [float(feat) for feat in pitcher_features]
 
+    def normalise_list(self, features, num_feats):
+
+        """# Function Description: Given a list of stats, normalise the contents within the list.
+        # Function Parameters: features (The features.), num_feats (The number of features to segregate.)
+        # Function Throws: Nothing
+        # Function Returns: The normalised values."""
+        
+        final_features = []
+        seg_features = [[features[i] for i in range(num, len(features), num_feats)] for num in range(0, num_feats)]
+        norm_features = [[float(i)/sum(li) for i in li] for li in seg_features]
+        for li in norm_features:
+            for i in li:
+                final_features.append(i)
+        return final_features
+
+    def get_game_features_normalise(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, game_stats):
+
+        """# Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
+        #    The values will be normalised including both home teams and visitors.
+        # Function Parameters: all_batters (All of the batters information.), 
+        #    offensive_features (All of the offensive features that are used to predict outcome.), 
+        #    all_pitchers (The dictionary containing all the pitchers who participated in every game.),
+        #    starting_pitchers (The starting pitchers in all the games.), 
+        #    relief_pitchers (The relief pitchers in all the games.), 
+        #    pitching_features (The pitching features in all the games. (Both relievers and starters.)),
+        #    game_stats (The game id with all pertinent information.)
+        # Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
+        # Function Returns: A single list containing the features of the game.""" 
+
+        # Get Batting Features on both sides.
+        batting_feat = self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 1), game_stats[0])
+        batting_feat += self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 0), game_stats[0])
+        game_features = self.normalise_list(batting_feat, 2)
+        # Get Pitching Features on both sides.
+        pitching_feat = self.sub_pitching_features(pitching_features, [self.get_starting_pitcher(starting_pitchers, game_stats[0], game_stats[6])], game_stats[0])
+        pitching_feat += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[6], game_stats[1]), game_stats[0])
+        pitching_feat += self.sub_pitching_features(pitching_features, [self.get_starting_pitcher(starting_pitchers, game_stats[0], game_stats[7])], game_stats[0])
+        pitching_feat += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[7], game_stats[1]), game_stats[0])
+        game_features += self.normalise_list(pitching_feat, 3)
+        if len(game_features) != 60: raise ValueError("The correct number of features was not returned.")
+        return game_features
+
     def get_game_features(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, game_stats):
 
         """# Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
@@ -174,3 +216,4 @@ class Feature_Consolidater():
         game_features += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[7], game_stats[1]), game_stats[0])
         if len(game_features) != 60: raise ValueError("The correct number of features was not returned.")
         return game_features
+
