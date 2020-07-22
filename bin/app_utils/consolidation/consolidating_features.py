@@ -15,10 +15,10 @@ class Feature_Consolidater():
     def get_starting_batters(self, batting_players, game_id, team_batting):
 
         """# Function Description: Givin all the batting events in a game, extract the starting the lineup.
-        # Function Parameters: batting_players (The dictionary containing all the events from all games.), 
-        #    game_id (The game id you wish to extract the betting lineup.), team_batting (The batting team: The Visting Team is 0, the Home Team is 1.)
+        # Function Parameters: batting_players (Dict: The dictionary containing all the events from all games.), 
+        #    game_id (String: The game id you wish to extract the betting lineup.), team_batting (String: The batting team: The Visting Team is 0, the Home Team is 1.)
         # Function Throws: Nothing
-        # Function Returns: The list of players in the batting lineup."""
+        # Function Returns: List: The list of players in the batting lineup."""
                                                         
         filter_team = [(g_id, team, e_id) for g_id, team, e_id in batting_players[game_id] if team == team_batting] 
         filter_team.sort(key=lambda x: int(search(r'\d+', x[2][:3]).group()))      # Sort the string by the leading numbers of each id.
