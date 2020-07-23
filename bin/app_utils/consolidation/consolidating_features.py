@@ -12,6 +12,26 @@ class Feature_Consolidater():
 
         pass
 
+    def get_win_pct(self, game_outcomes, num_games=12):
+
+        """ Function Description: Finding the winning percentage of the participating teams for the last x games.
+        # Function Parameters: game_outcomes (List: A list of tuples containing the game outcomes of each game.)
+        #    num_games (Int: The number of games going back)
+        # Function Throws: Nothing
+        # Function Returns: (Dict: The dictionary identified by the game id and the win percentage of each team.)"""
+
+        team_win_pcts = {}
+        current_year = 1990
+        ending_year = 2019
+        current_game = 0
+        while beginning_year <= 2019:
+            team_game_outcomes = {}
+            while game_outcomes[current_game][1] == current_year:        # Only the record of a team in a single year is relavent.
+                pass   
+                ####### CODE THE num_games rolling average of the team. ###### 
+            current_year += 1
+
+
     def get_starting_batters(self, batting_players, game_id, team_batting):
 
         """# Function Description: Givin all the batting events in a game, extract the starting the lineup.

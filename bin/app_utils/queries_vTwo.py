@@ -12,8 +12,8 @@ class Queries():
 
     def __init__(self, db_connection):
 
-        # Class Description: The class will provide accessible and reuseable queries accross stages.
-        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.)
+        """ Class Description: The class will provide accessible and reuseable queries accross stages.
+        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.) """
 
         if (str(type(db_connection)) == '<class \'pymysql.connections.Connection\'>'):
             self.__db_connection__ = db_connection
@@ -57,13 +57,15 @@ class Queries():
 
     def get_game_outcomes(self, day=1, month=1):
 
-        # Function Description: The function will retrieve the game outcomes with the date formatted in separated columns. In addition, 
+        """ Function Description: The function will retrieve the game outcomes with the date formatted in separated columns. In addition, 
         #    the user will have the option to filter out games before a specific day in the year. If no options are included, no filtering
         #    will be executed.
-        # Function Parameters: Nothing
+        # Function Parameters: day (Int: The minimum day that should be skipped.), month (Int: The minimum month that should be skipped.)
         # Function Throws: Nothing
         # Function Returns: The list of game ids with the associated outcomes and dates. 
-        #     (Game_ID, year, day, month, Home_Score, Vis_Score, Home_Team, Visitng_Team, Home_Win) where a winning home team is flagged at 0.
+        #    (Game_ID, year, day, month, Home_Score, Vis_Score, Home_Team, Visitng_Team, Home_Win) where a winning home team is flagged at 0. 
+        #    It may be important to note that a score within the DB on the last inning ending in a tie will go to the home team. I believe this is
+        #    correct because this points to the occurence of a walk-off win."""
 
         return list(self.fetch_data("""select event_instance.Game_ID, year(game_day.Date) as Year, day(game_day.Date) as Day, 
                                 month(game_day.Date) as Month, event_instance.Home_Score, 
@@ -77,11 +79,11 @@ class Queries():
 
     def org_by_player_then_game(self, features):
 
-        # Function Description: The function will organise a raw query into a dictionary of lists. The lists within the dictionary are organised from oldest to greatest.
-        # Function Parameters: features (The features that must be organised. Note, the Game_ID must be located in the first column 
+        """ Function Description: The function will organise a raw query into a dictionary of lists. The lists within the dictionary are organised from oldest to greatest.
+        # Function Parameters: features (List: The features that must be organised. Note, the Game_ID must be located in the first column 
         #    while the player_id is located in the second column.)
         # Function Throws: Nothing
-        # Function Returns: The dictionary of lists where the GameID within the list are ordered.
+        # Function Returns: (Dict: The dictionary of lists where the GameID within the list are ordered.)"""
 
         org_features = {}
         for feature in features:                 # Create the dict of lists of lists where lists are stored as uner the player id.
@@ -95,8 +97,8 @@ class Queries():
 
     def unpack_pitchers(self, pitcher_query):
 
-        """# Function Description: The function will perform basic exploratory observations within the pitchers data structure.
-        # Function Parameters: pitcher_query (The pitcher dictionary with all the pitcher names.)
+        """ Function Description: The function will perform basic exploratory observations within the pitchers data structure.
+        # Function Parameters: pitcher_query (Dict: The pitcher dictionary with all the pitcher names.)
         # Function Throws: Nothing
         # Function Returns: Nothing - The function will print information about the query structure.""" 
 
