@@ -12,6 +12,18 @@ class Feature_Consolidater():
 
         pass
 
+    def _get_last_ten_n_games(self, game_outcomes_window, num_games):
+
+        """ Function Description: Get the winning percentage of the participating teams of the last n games.
+            DO NOT INCLUDE the current game within the winning percentage since we are unaware of this outcome at
+            the point of the record.
+        # Function Parameters: game_outcomes_window (List: The outcomes of the up until the current game.), 
+            num_games (Int: The number of games to go back.)
+        # Function Throws: Nothing
+        # Function Returns: (Dict: Containing the teams who participated in the game with their respective winning percentages.)"""
+
+        pass
+
     def get_win_pct(self, game_outcomes, num_games=12):
 
         """ Function Description: Finding the winning percentage of the participating teams for the last x games.
@@ -24,7 +36,7 @@ class Feature_Consolidater():
         current_year = 1990
         ending_year = 2019
         current_game = 0
-        while beginning_year <= 2019:
+        while current_year <= 2019:
             team_game_outcomes = {}
             while game_outcomes[current_game][1] == current_year:        # Only the record of a team in a single year is relavent.
                 pass   
