@@ -12,7 +12,44 @@ class Feature_Consolidater():
 
         pass
 
-    def _get_last_ten_n_games(self, game_outcomes_window, num_games):
+    def _calc_win_pct(self, current_record):
+
+        """ Function Description: Calculate the win percentage of the teams within the dictionary.
+        # Function Parameters: current_record (Dict: The record of the participating teams.) 
+        # Function Throws: Nothing
+        # Function Returns: current_record (Dict: The record of the participating teams. However, the changes will be applied.) """
+
+        for team, record in current_record.items():
+            if record[1] != 0:
+                current_record[team] = record[0] / record[1]
+            else:
+                current_record[team] = 0.0 
+        return current_record
+
+    def _add_games(self, current_record, team, home_advantage, game_outcome):
+
+        """ Function Description: Help insert a game into the current_record dictionary. There is some logic that is repeated and better modulated
+            within a distinct function.
+        # Function Parameters: current_record (Dict: The current record of both teams within the most recent event.), 
+        #     team (String: The team to update.), home_advantage (Boolean: An indicator of either being home or away.), 
+        #     game_outcome (Int: An indication of whether the home team has won.).
+        # Function Throws: Nothing
+        # Function Returns: Nothing - We are making the change of current record at the point of reference. """
+
+        if home_advantage == True:
+            if game_outcome == 0:                # Remember, a 0 indicates that the home team has won.
+                current_record[team][0] += 1     # Record whether the team has won, else add that a game has been played.
+                current_record[team][1] += 1
+            else: 
+                current_record[team][1] += 1
+        else:
+            if game_outcome == 0:                # Visitors will experience the opposite logic.
+                current_record[team][1] += 1
+            else:
+                current_record[team][0] += 1 
+                current_record[team][1] += 1
+
+    def _get_last_n_games_pct(self, game_outcomes_window, num_games):
 
         """ Function Description: Get the winning percentage of the participating teams of the last n games.
             DO NOT INCLUDE the current game within the winning percentage since we are unaware of this outcome at
@@ -22,7 +59,35 @@ class Feature_Consolidater():
         # Function Throws: Nothing
         # Function Returns: (Dict: Containing the teams who participated in the game with their respective winning percentages.)"""
 
-        pass
+        most_recent_game = game_outcomes_window[-1]              # A sample record: ('BOS199004090', 1990, 9, 4, 5, 2, 'BOS', 'DET', 0)
+        game_id = most_recent_game[0]
+        home_team = most_recent_game[6]
+        vis_team = most_recent_game[7]
+        current_record = {}
+        home_games_factored = 0
+        vis_games_factored = 0
+        current_record[home_team] = [0, 0]                       # Ensure that the team is inserted into the dictionary.
+        current_record[vis_team] = [0, 0]
+        if len(game_outcomes_window) == 1:                       # There is nothing we can do at the beginning of the season.
+            return {game_id: {home_team: 0.0, vis_team: 0.0}}
+        for game in reversed(game_outcomes_window[:-1]):         # Start after the most recent game since that is what we are analysing.
+            game_home_team = game[6]
+            game_vis_team = game[7]
+            if ((home_team == game_home_team) and (home_games_factored < num_games)):       # Check if the HOME team participated in the games past.
+                self._add_games(current_record, home_team, True, game[-1])
+                home_games_factored += 1                                                    # Count that the game has been factored.
+            elif ((home_team == game_vis_team) and (home_games_factored < num_games)):
+                self._add_games(current_record, home_team, False, game[-1])
+                home_games_factored += 1
+            if ((vis_team == game_home_team) and (vis_games_factored < num_games)):         # Check if the VIS team participated in the games past.
+                self._add_games(current_record, vis_team, True, game[-1])
+                vis_games_factored += 1
+            elif ((vis_team == game_vis_team) and (vis_games_factored < num_games)):
+                self._add_games(current_record, vis_team, False, game[-1])
+                vis_games_factored += 1
+            if ((home_games_factored >= num_games) and (vis_games_factored >= num_games)):
+                return self._calc_win_pct(current_record)                                        # End when all the games are accounted for.
+        return self._calc_win_pct(current_record)                                                # If reached, the team did not play n games.
 
     def get_win_pct(self, game_outcomes, num_games=12):
 
@@ -32,17 +97,14 @@ class Feature_Consolidater():
         # Function Throws: Nothing
         # Function Returns: (Dict: The dictionary identified by the game id and the win percentage of each team.)"""
 
-        team_win_pcts = {}
         current_year = 1990
-        ending_year = 2019
-        current_game = 0
+        game_pct_attributes = {}
         while current_year <= 2019:
-            team_game_outcomes = {}
-            while game_outcomes[current_game][1] == current_year:        # Only the record of a team in a single year is relavent.
-                pass   
-                ####### CODE THE num_games rolling average of the team. ###### 
+            year_game_outcomes = [outcome for outcome in game_outcomes if outcome[1] == current_year]   # Only the record of a team in the same year is relavent. (outcome[1] = game year)
+            for num, outcome in enumerate(year_game_outcomes):               
+                game_pct_attributes[outcome[0]] = self._get_last_n_games_pct(year_game_outcomes[: num + 1], num_games)
             current_year += 1
-
+        return game_pct_attributes
 
     def get_starting_batters(self, batting_players, game_id, team_batting):
 
@@ -224,7 +286,7 @@ class Feature_Consolidater():
         if len(game_features) != 60: raise ValueError("The correct number of features was not returned.")
         return game_features
 
-    def get_game_features(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, game_stats):
+    def get_game_features(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, winning_pct, game_stats):
 
         """# Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
         # Function Parameters: all_batters (All of the batters information.), 
@@ -233,19 +295,25 @@ class Feature_Consolidater():
         #    starting_pitchers (The starting pitchers in all the games.), 
         #    relief_pitchers (The relief pitchers in all the games.), 
         #    pitching_features (The pitching features in all the games. (Both relievers and starters.)),
-        #    game_stats (The game id with all pertinent information.)
+        #    game_stats (The game id with all pertinent information.), 
+        #    winning_pct (The n game rolling winning percentage.)
         # Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
         # Function Returns: A single list containing the features of the game."""
 
         game_features = []
+        game_id = game_stats[0]
+        home_team = game_stats[6]
+        vis_team = game_stats[7]
         # Acquire Home Stats
         game_features += self.sub_pitching_features(pitching_features, [self.get_starting_pitcher(starting_pitchers, game_stats[0], game_stats[6])], game_stats[0])       # The location of the home team within the games list.
         game_features += self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 1), game_stats[0])
         game_features += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[6], game_stats[1]), game_stats[0])
+        game_features.append(winning_pct[game_id][home_team])
         # Acquire Away Stats
         game_features += self.sub_pitching_features(pitching_features, [self.get_starting_pitcher(starting_pitchers, game_stats[0], game_stats[7])], game_stats[0])
         game_features += self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 0), game_stats[0])
         game_features += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[7], game_stats[1]), game_stats[0])
-        if len(game_features) != 60: raise ValueError("The correct number of features was not returned.")
+        game_features.append(winning_pct[game_id][vis_team])
+        if len(game_features) != 62: raise ValueError("The correct number of features was not returned.")
         return game_features
 
