@@ -22,10 +22,10 @@ class Queries():
 
     def fetch_data(self, query):
 
-        # Function Description: Retrieve all the data given a particular query.
-        # Function Parameters: query (The query to execute in the database.)
+        """ Function Description: Retrieve all the data given a particular query.
+        # Function Parameters: query (String: The query to execute in the database.)
         # Function Throws: Nothing
-        # Function Returns: The contents from the query.
+        # Function Returns: (List: The contents from the query.) """
         
         filterwarnings('error')    
         try:
@@ -40,11 +40,11 @@ class Queries():
 
     def convert_query_to_dict(self, data):
         
-        # Function Description: Convert the data from a query into a dictionay to be indexed.
+        """ Function Description: Convert the data from a query into a dictionay to be indexed.
         #    The game id MUST BE the first value in the column.
-        # Function Parameters: data (The data that was extractred from the query.)
+        # Function Parameters: data (List: The data that was extractred from the query.)
         # Function Throws: Nothing
-        # Function Returns: The dictionary containing a list of events associated with the Game Id
+        # Function Returns: (Dict: The dictionary containing a list of events associated with the Game Id.) """
         
         query_dict = {}
         for row in data:
@@ -351,8 +351,8 @@ class Queries():
 
     def get_starting_pitchers(self, pitchers):
 
-        """# Function Description: Get starting pitchers from all games from both away and home teams.
-        # Function Parameters: pitchers (The dictionary containing all the pitchers.), 
+        """ Function Description: Get starting pitchers from all games from both away and home teams.
+        # Function Parameters: pitchers (Dict: The dictionary containing all the pitchers.), 
         # Function Throws: Nothing
         # Function Returns: A dictionary containing the starting pitchers attatched to each game id."""
 
@@ -370,12 +370,12 @@ class Queries():
 
     def get_batters(self, query_loc, get_again_flag=False):
 
-        # Function Description: The function returns only the players and the starting pitcher with the respective game ids. This will be the first attempt of gathering
+        """ Function Description: The function returns only the players and the starting pitcher with the respective game ids. This will be the first attempt of gathering
         #    the starting lineup.
-        # Function Parameters: query_loc (The location of results of previous queries.), 
-        #    get_again_flag (The function will talk to the database once again and replace the results. (CI))
+        # Function Parameters: query_loc (Path: The location of results of previous queries.), 
+        #    get_again_flag (Boolean: The function will talk to the database once again and replace the results. (CI))
         # Function Throws: Nothing
-        # Function Returns: A tuple containing two lists. The first list contains the home team names while the second list contains the away teams.
+        # Function Returns: (Tuple: The first list contains the home team names while the second list contains the away teams.) """
 
         # Home Team equals 1 for Batting Team. The query is formatted like such: 
         #     Game_ID, Batter_Name, Batting_Team, idEvent

@@ -149,6 +149,8 @@ class Feature_Consolidater():
             for idx, games in enumerate(player_stats):
                 if games[0] == game_id:                        # NOTE: Can this be optimised with using numpy arrays?
                     return player_stats[idx - 1][1:]           # Return the stats from the day before. Should we particularily focus on a seaosn? Should things get a rest?
+            return [-1, -1]                                    # If we get here, the game ID was not found. This occurs when the player participates in a game but does not contribute 
+                                                               # to an 'offensive feature'. For instance, the player gets a SH but nothing else.
         
     def sub_offensive_features(self, offensive_features, batters, game_id):
 
@@ -160,7 +162,10 @@ class Feature_Consolidater():
 
         game_offensive_features = []
         for batter in batters:
-            game_offensive_features += self.get_offensive_features(offensive_features, batter, game_id)
+            try:
+                game_offensive_features += self.get_offensive_features(offensive_features, batter, game_id)
+            except Exception:
+                raise ValueError("The batter caused the error: {}".format(batter))
         return game_offensive_features
 
     def get_relief_pitchers(self, all_pitchers, relief_pitchers, game_id, pitcher_team, year):
