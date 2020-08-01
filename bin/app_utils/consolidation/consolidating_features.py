@@ -135,22 +135,29 @@ class Feature_Consolidater():
 
         return starting_pitchers[game_id][pitcher_team]
 
-    def get_offensive_features(self, offensive_features, player_id, game_id):
+    def get_offensive_features(self, offensive_features, player_id, game_id, num_features=2):
 
             """# Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
-            # Function Parameters: player_id (The player id associated in which we wish to retrieve the data.), game_id (The game id needed to look backwards.)
+            # Function Parameters: offensive_features (Dict: A dictionary containing all the offensive features of a player.), 
+            #    player_id (String: The player id associated in which we wish to retrieve the data.), 
+            #    game_id (String: The game id needed to look backwards.), num_features (Int: The number of features returned for a player.)
             # Function Throws: Nothing
             # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
-            #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player."""
-
-            player_stats = offensive_features[player_id]
+            #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+            # Function Notes: If we get to the end, the game ID was not found. This occurs when the player participates in a game but does not contribute 
+            # to an 'offensive feature'. For instance, the player gets a SH but nothing else. This will also cause an error when attempting to 
+            # retrieve contents from the 'offensive_features' dictionary since nothing will even be inserted.""" 
+            
+            if player_id in offensive_features:
+                player_stats = offensive_features[player_id]
+            else:
+                return [-1 for i in range(0, num_features)]
             if len(player_stats) < 4:                          # Not enough games played to create reasonable stats.
-                return [-1, -1]
+                return [-1 for i in range(0, num_features)]
             for idx, games in enumerate(player_stats):
                 if games[0] == game_id:                        # NOTE: Can this be optimised with using numpy arrays?
                     return player_stats[idx - 1][1:]           # Return the stats from the day before. Should we particularily focus on a seaosn? Should things get a rest?
-            return [-1, -1]                                    # If we get here, the game ID was not found. This occurs when the player participates in a game but does not contribute 
-                                                               # to an 'offensive feature'. For instance, the player gets a SH but nothing else.
+            return [-1 for i in range(0, num_features)]                                    
         
     def sub_offensive_features(self, offensive_features, batters, game_id):
 
