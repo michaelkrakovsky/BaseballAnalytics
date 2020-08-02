@@ -160,11 +160,13 @@ class Feature_Consolidater():
 
     def get_starting_pitcher(self, starting_pitchers, game_id, pitcher_team):
 
-        """# Function Description: Extract the starting pitcher of the game.
-        # Function Parameters: starting_pitchers (The dictionary containing all the games with their starters.), 
-        #    game_id (The game id you wish to extract the betting lineup.), pitcher_team (The team of the pitcher who plays on the team.)
-        # Function Throws: Nothing
-        # Function Returns: The starting pitcher."""
+        """
+        Function Description: Extract the starting pitcher of the game.
+        Function Parameters: starting_pitchers (Dict: The dictionary containing all the games with their starters.), 
+            game_id (String: The game id you wish to extract the betting lineup.), pitcher_team (String: The team of the pitcher who plays on the team.)
+        Function Throws: Nothing
+        Function Returns: (String: The starting pitcher.)
+        """
 
         return starting_pitchers[game_id][pitcher_team]
 
@@ -194,11 +196,13 @@ class Feature_Consolidater():
         
     def sub_offensive_features(self, offensive_features, batters, game_id):
 
-        """ Function Description: Substitute the batters ids provided with the batting features. The features will be returned in the same order the names are provided.
-        # Function Parameters: offensive_features (Dict: The dictionary containing the player ids that are tied to the offensive features.) 
-        #    batters (List: The player ids we wish to retrieve the data for.), game_id (String: The game id needed to look backwards.) 
-        # Function Throws: Nothing
-        # Function Returns: A complete list of the featues to be inputted into the model. The list will vary depending on the number of players and features for each player."""
+        """ 
+        Function Description: Substitute the batters ids provided with the batting features. The features will be returned in the same order the names are provided.
+        Function Parameters: offensive_features (Dict: The dictionary containing the player ids that are tied to the offensive features.) 
+            batters (List: The player ids we wish to retrieve the data for.), game_id (String: The game id needed to look backwards.) 
+        Function Throws: Nothing
+        Function Returns: (List: A complete list of the featues to be inputted into the model. The list will vary depending on the number of players and features for each player.)
+        """
 
         game_offensive_features = []
         for batter in batters:
@@ -275,11 +279,14 @@ class Feature_Consolidater():
 
     def sub_pitching_features(self, pitching_features, pitchers, game_id):
 
-        """# Function Description: Substitute the pitcher ids provided with the pitching features. The features will be returned in the same order the names are provided.
-        # Function Parameters: pitching_features (The pitching features used to indicate the pitchers performance.),
-        #    pitchers (The player ids we wish to retrieve the data for.), game_id (The game id needed to look backwards.) 
-        # Function Throws: Nothing
-        # Function Returns: A complete list of the featues to be inputted into the model. The list will vary depending on the number of players and features for each player."""
+        """
+        Function Description: Substitute the pitcher ids provided with the pitching features. The features will be returned in the same order the names are provided.
+        Function Parameters: pitching_features (Dict: The pitching features used to indicate the pitchers performance.),
+            pitchers (List: The player ids we wish to retrieve the data for.), 
+            game_id (String: The game id needed to look backwards.) 
+        Function Throws: Nothing
+        Function Returns: (List: A complete list of the featues to be inputted into the model. The list will vary depending on the number of players and features for each player.)
+        """
 
         pitcher_features = []
         for pitcher in pitchers:
@@ -288,33 +295,45 @@ class Feature_Consolidater():
 
     def normalise_list(self, features, num_feats):
 
-        """ Function Description: Given a list of stats, normalise the contents within the list.
-        # Function Parameters: features (List: The features.), num_feats (Int: The number of features to segregate.)
-        # Function Throws: Nothing
-        # Function Returns: The normalised values."""
+        """ 
+        Function Description: Given a list of stats, normalise the contents within the list.
+        Function Parameters: features (List: The features.), num_feats (Int: The number of features to segregate.)
+        Function Throws: Nothing
+        Function Returns: (List: The normalised values.) 
+        """
         
         final_features = []
         seg_features = [[features[i] for i in range(num, len(features), num_feats)] for num in range(0, num_feats)]
-        norm_features = [[float(i)/sum(li) for i in li] for li in seg_features]
+        norm_features = []
+        for seg in seg_features:                                # Normalise each list through the min max approach.
+            amin, amax = min(seg), max(seg)
+            diff = float(amax-amin)
+            norm_features.append([float(val-amin) / diff for val in seg])        
         for li in norm_features:
             for i in li:
                 final_features.append(i)
         return final_features
 
-    def get_game_features_normalise(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, game_stats):
+    def get_game_features_normalise(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, winning_pct, game_stats):
 
-        """# Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
-        #    The values will be normalised including both home teams and visitors.
-        # Function Parameters: all_batters (All of the batters information.), 
-        #    offensive_features (All of the offensive features that are used to predict outcome.), 
-        #    all_pitchers (The dictionary containing all the pitchers who participated in every game.),
-        #    starting_pitchers (The starting pitchers in all the games.), 
-        #    relief_pitchers (The relief pitchers in all the games.), 
-        #    pitching_features (The pitching features in all the games. (Both relievers and starters.)),
-        #    game_stats (The game id with all pertinent information.)
-        # Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
-        # Function Returns: A single list containing the features of the game.""" 
+        """
+        Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
+            The values will be normalised including both home teams and visitors.
+        Function Parameters: all_batters (Dict: All of the batters information.), 
+            offensive_features (Dict: All of the offensive features that are used to predict outcome.), 
+            all_pitchers (Dict: The dictionary containing all the pitchers who participated in every game.),
+            starting_pitchers (Dict: The starting pitchers in all the games.), 
+            relief_pitchers (Dict: The relief pitchers in all the games.), 
+            pitching_features (Dict: The pitching features in all the games. (Both relievers and starters.)),
+            winning_pct (Dict: The n game rolling winning percentage.),
+            game_stats (Dict: The game id with all pertinent information.) 
+        Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
+        Function Returns: A single list containing the features of the game.
+        """ 
 
+        game_id = game_stats[0]
+        home_team = game_stats[6]
+        vis_team = game_stats[7]
         # Get Batting Features on both sides.
         batting_feat = self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 1), game_stats[0])
         batting_feat += self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 0), game_stats[0])
@@ -325,22 +344,27 @@ class Feature_Consolidater():
         pitching_feat += self.sub_pitching_features(pitching_features, [self.get_starting_pitcher(starting_pitchers, game_stats[0], game_stats[7])], game_stats[0])
         pitching_feat += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[7], game_stats[1]), game_stats[0])
         game_features += self.normalise_list(pitching_feat, 3)
-        if len(game_features) != 60: raise ValueError("The correct number of features was not returned.")
+        # Add winning percentages.
+        game_features.append(winning_pct[game_id][home_team])
+        game_features.append(winning_pct[game_id][vis_team]) 
+        if len(game_features) != 62: raise ValueError("The correct number of features was not returned.")
         return game_features
 
     def get_game_features(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, winning_pct, game_stats):
 
-        """# Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
-        # Function Parameters: all_batters (Dict: All of the batters information.), 
-        #    offensive_features (Dict: All of the offensive features that are used to predict outcome.), 
-        #    all_pitchers (Dict: The dictionary containing all the pitchers who participated in every game.),
-        #    starting_pitchers (Dict: The starting pitchers in all the games.), 
-        #    relief_pitchers (Dict: The relief pitchers in all the games.), 
-        #    pitching_features (Dict: The pitching features in all the games. (Both relievers and starters.)),
-        #    game_stats (Dict: The game id with all pertinent information.), 
-        #    winning_pct (Dict: The n game rolling winning percentage.)
-        # Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
-        # Function Returns: A single list containing the features of the game."""
+        """
+        Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
+        Function Parameters: all_batters (Dict: All of the batters information.), 
+            offensive_features (Dict: All of the offensive features that are used to predict outcome.), 
+            all_pitchers (Dict: The dictionary containing all the pitchers who participated in every game.),
+            starting_pitchers (Dict: The starting pitchers in all the games.), 
+            relief_pitchers (Dict: The relief pitchers in all the games.), 
+            pitching_features (Dict: The pitching features in all the games. (Both relievers and starters.)),
+            winning_pct (Dict: The n game rolling winning percentage.),
+            game_stats (Dict: The game id with all pertinent information.) 
+        Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
+        Function Returns: A single list containing the features of the game.
+        """
 
         game_features = []
         game_id = game_stats[0]
@@ -359,13 +383,16 @@ class Feature_Consolidater():
         if len(game_features) != 62: raise ValueError("The correct number of features was not returned.")
         return game_features
 
-    def _compile_game_features(self, fp):
+    def _compile_game_features(self, fp, normalise):
 
-        """ Function Description: Gather all the features from every game and separate them into X and Y.
-        # Function Parameters: fp (Feature_Pack: The containmnet of all features into one object for better organisation.)
-        # Function Throws: Nothing
-        # Function Returns: X, Y (List: The containment of all features.), (List: The outcomes of every game.)
+        """ 
+        Function Description: Gather all the features from every game and separate them into X and Y.
+        Function Parameters: fp (Feature_Pack: The containmnet of all features into one object for better organisation.)
+            normalise (Boolean: The flag indicating to normalise each parameter.)
+        Function Throws: Nothing
+        Function Returns: X, Y (List: The containment of all features.), (List: The outcomes of every game.)
         """
+
         lh = Log_Helper()
         X = []
         Y = []
@@ -373,26 +400,31 @@ class Feature_Consolidater():
         lh.print_progress_bar(0, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)    # Initial call to print 0% progress
         for num, game_stats in enumerate(fp.game_outcomes):
             try:
-                X.append(self.get_game_features(fp.all_batters, fp.offensive_features, fp.all_pitchers, fp.starting_pitchers, fp.relief_pitchers, fp.pitching_features, fp.winning_pct, game_stats))
+                if normalise:
+                    X.append(self.get_game_features_normalise(fp.all_batters, fp.offensive_features, fp.all_pitchers, fp.starting_pitchers, fp.relief_pitchers, fp.pitching_features, fp.winning_pct, game_stats))
+                else:
+                    X.append(self.get_game_features(fp.all_batters, fp.offensive_features, fp.all_pitchers, fp.starting_pitchers, fp.relief_pitchers, fp.pitching_features, fp.winning_pct, game_stats))
                 Y.append(game_stats[8])
             except Exception as e:
                 print("An error as occurred at {}. The error: {}".format(game_stats[0], str(e)))
             lh.print_progress_bar(num + 1, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)
         return X, Y
 
-    def get_all_game_features(self, fp, query_loc, get_again_flag=False):
+    def get_all_game_features(self, fp, query_loc, normalise=False, get_again_flag=False):
 
-        """ Function Description: Retrieve the features for every single game and return it has a list.
-        # Function Parameters: fp (Feature_Pack: All the features in one object.)
-        #    query_loc (String: The location of results of previous queries.), 
-        #    get_again_flag (Boolean: The function will call the database overwriting the results. (CI))
-        # Function Throws: Nothing
-        # Function Returns: X, Y (List: The containment of all features.), (List: The outcomes of every game.) 
+        """ 
+        Function Description: Retrieve the features for every single game and return it has a list.
+        Function Parameters: fp (Feature_Pack: All the features in one object.)
+            query_loc (String: The location of results of previous queries.), 
+            normalise (Boolean: The flag indicating to normalise each parameter.),
+            get_again_flag (Boolean: The function will call the database overwriting the results. (CI))
+        Function Throws: Nothing
+        Function Returns: X, Y (List: The containment of all features.), (List: The outcomes of every game.) 
         """
 
         if get_again_flag == False:                                                    # Use the information already provided.
             with open(query_loc, 'rb') as f:
                 return load(f), [game_stats[8] for game_stats in fp.game_outcomes]     # Returning X, Y. Y does not need to be stored since it is quick to derive.
-        X, Y = self._compile_game_features(fp)   
+        X, Y = self._compile_game_features(fp, normalise)
         with open(query_loc, 'wb') as f: dump(X, f)
         return X, Y
