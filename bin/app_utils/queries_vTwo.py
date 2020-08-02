@@ -250,7 +250,7 @@ class Queries():
     def get_pitchers_in_window(self, games):
 
         """Function Description: Given the pitchers in a window, determine the entire pitching roster.
-        Function Parameters: games (The games to be processed.)
+        Function Parameters: games (List: The games to be processed.)
         Function Throws: Nothing
         Function Returns: A tuple of lists containing the pitchers ordered by number of innings played.
             The first element contains the starting pitchers. The second element contains the relief pitchers."""
@@ -269,10 +269,10 @@ class Queries():
     def get_unique_relief_pitchers(self, starting_pitchers, relief_pitchers):
 
         """Function Description: Only retrieve pitchers that are dedicated relief pitchers.
-        Function Parameters: starting_pitchers (The pitchers who started in the window size.), 
-            relief_pitchers (Pitchers who were relievers in the window size.)
-        Function Throws: Nothing
-        Function Returns: Pitchers that only existed as relief pitchers."""
+        # Function Parameters: starting_pitchers (Dict: The pitchers who started in the window size.), 
+            relief_pitchers (Dict: Pitchers who were relievers in the window size.)
+        # Function Throws: Nothing
+        # Function Returns: (List: Pitchers that only existed as relief pitchers.)"""
 
         only_relief = []
         for relief in relief_pitchers:
@@ -282,13 +282,13 @@ class Queries():
 
     def tie_relievers_to_games(self, relief_games, relief_profile, games, team):
 
-        """Function Description: Prepare the data in which it can be shipped to the model.
-        Function Parameters: relief_games (The existing dictionary containing the relief pitchers.)
-            relief_profile (The final relief pitchers to be appended to the model.), 
-            games (The games that was used within the model.), 
-            team (The team that contains the relief pitchers.)
-        Function Throws: Nothing
-        Function Returns: A dictionary containing the games and the pitchers who participated. {game_id : [relief_pitchers]}"""
+        """ Function Description: Prepare the data in which it can be shipped to the model.
+        # Function Parameters: relief_games (Dict: The existing dictionary containing the relief pitchers.)
+            relief_profile (List: The final relief pitchers to be appended to the model.), 
+            games (List: The games that was used within the model.), 
+            team (String: The team that contains the relief pitchers.)
+        # Function Throws: Nothing
+        # Function Returns: A dictionary containing the games and the pitchers who participated. {game_id : [relief_pitchers]}"""
 
         for game in games:
             if game[0] not in relief_games:
@@ -321,11 +321,11 @@ class Queries():
         
     def get_relief_pitchers(self, pitchers, window_size=40):
 
-        """# Function Description: Retrieve all the pitchers who participated on the teams starting lineup.
+        """ Function Description: Retrieve all the pitchers who participated on the teams starting lineup.
             The function will all correct for the fewest number of players to appear in the games. For instance, 
             if only three relievers participated in the last n games, then all profiles will contain the top three most prevelant relievers.
-        # Function Parameters: pitchers (The dictionary containing all the pitchers.), 
-        #    window_size (The pitchers on the roster within the specified timeframe.)
+        # Function Parameters: pitchers (Dict: The dictionary containing all the pitchers.), 
+        #    window_size (Int: The pitchers on the roster within the specified timeframe.)
         # Function Throws: Nothing
         # Function Returns: A dictionary containing the pitcher names within the specified time frame."""
 
@@ -395,12 +395,12 @@ class Queries():
 
     def get_all_offensive_features(self, query_loc, get_again_flag=False):
 
-        # Function Description: Retrieve the features all batters after the specified game id.
-        # Function Parameters: query_loc (The location of results of previous queries.), 
-        #    get_again_flag (The function will call the database overwriting the results. (CI))
+        """ Function Description: Retrieve the features all batters after the specified game id.
+        # Function Parameters: query_loc (Path: The location of results of previous queries.), 
+        #    get_again_flag (Boolean: The function will call the database overwriting the results. (CI))
         # Function Throws: Nothing
         # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
-        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player. """
 
         if get_again_flag == False:                  # Use the information already provided.
             with open(query_loc, 'rb') as f:
@@ -418,12 +418,12 @@ class Queries():
 
     def get_all_pitching_features(self, query_loc, get_again_flag=False):
 
-        # Function Description: Retrieve the features all pitchers after the specified game id.
-        # Function Parameters: query_loc (The location of results of previous queries.), 
-        #    get_again_flag (The function will call the database overwriting the results. (CI))
+        """ Function Description: Retrieve the features all pitchers after the specified game id.
+        # Function Parameters: query_loc (Path: The location of results of previous queries.), 
+        #    get_again_flag (Boolean: The function will call the database overwriting the results. (CI))
         # Function Throws: Nothing
         # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
-        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player. """
 
         if get_again_flag == False:                  # Use the information already provided.
             with open(query_loc, 'rb') as f:

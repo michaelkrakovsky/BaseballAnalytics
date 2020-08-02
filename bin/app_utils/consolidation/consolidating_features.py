@@ -3,6 +3,40 @@
 # Script Version: 1.0
 
 from re import search
+from pickle import load, dump
+from BaseballAnalytics.bin.app_utils.common_help import Log_Helper
+
+class Feature_Pack():
+
+    """ 
+    Class Description: The class will hold all the necessary dictionaries from previous queries and executions. This will 
+        become important when it is time to considate these features.
+    """
+
+    def __init__(self, game_outcomes, winning_pct, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features):
+
+        """
+        Function Description: The init method to instantiate the class.
+        Function Parameters: game_outcomes (List: The outcomes of each game to be modelled.), 
+            winning_pct (Dict: The winning percentage of each team prior to game indicated within the key.),
+            all_batters (Dict: The storage of each batter who participated in the game.), 
+            offensive_features (Dict: The offensive stats of the player prior to the game.), 
+            all_pitchers (Dict: The storage of each pitcher who participated in the game.), 
+            starting_pitchers (Dict: The pitchers who will start in the game.), 
+            relief_pitchers (Dict: The pitchers will be a reliever in the game.), 
+            pitching_features (Dict: The features of the pitchers prior to the current.)
+        Function Throws: Nothing
+        Function Returns: Nothing
+        """
+
+        self.game_outcomes = game_outcomes
+        self.winning_pct = winning_pct
+        self.all_batters = all_batters 
+        self.offensive_features = offensive_features 
+        self.all_pitchers = all_pitchers 
+        self.starting_pitchers = starting_pitchers
+        self.relief_pitchers = relief_pitchers 
+        self.pitching_features = pitching_features
 
 class Feature_Consolidater():
 
@@ -136,27 +170,27 @@ class Feature_Consolidater():
 
     def get_offensive_features(self, offensive_features, player_id, game_id, num_features=2):
 
-            """# Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
-            # Function Parameters: offensive_features (Dict: A dictionary containing all the offensive features of a player.), 
-            #    player_id (String: The player id associated in which we wish to retrieve the data.), 
-            #    game_id (String: The game id needed to look backwards.), num_features (Int: The number of features returned for a player.)
-            # Function Throws: Nothing
-            # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
-            #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
-            # Function Notes: If we get to the end, the game ID was not found. This occurs when the player participates in a game but does not contribute 
-            # to an 'offensive feature'. For instance, the player gets a SH but nothing else. This will also cause an error when attempting to 
-            # retrieve contents from the 'offensive_features' dictionary since nothing will even be inserted.""" 
-            
-            if player_id in offensive_features:
-                player_stats = offensive_features[player_id]
-            else:
-                return [-1 for i in range(0, num_features)]
-            if len(player_stats) < 4:                          # Not enough games played to create reasonable stats.
-                return [-1 for i in range(0, num_features)]
-            for idx, games in enumerate(player_stats):
-                if games[0] == game_id:                        # NOTE: Can this be optimised with using numpy arrays?
-                    return player_stats[idx - 1][1:]           # Return the stats from the day before. Should we particularily focus on a seaosn? Should things get a rest?
-            return [-1 for i in range(0, num_features)]                                    
+        """# Function Description: Retrieve the features of a given player prior to entering the new game. The features are available from the previous game.
+        # Function Parameters: offensive_features (Dict: A dictionary containing all the offensive features of a player.), 
+        #    player_id (String: The player id associated in which we wish to retrieve the data.), 
+        #    game_id (String: The game id needed to look backwards.), num_features (Int: The number of features returned for a player.)
+        # Function Throws: Nothing
+        # Function Returns: A list containing the offensive features. The amount of features was determined in previous queries but does not matter in this function.
+        #    If the player does not have much data, I will be returning -1 to signal the prescence of a new player.
+        # Function Notes: If we get to the end, the game ID was not found. This occurs when the player participates in a game but does not contribute 
+        # to an 'offensive feature'. For instance, the player gets a SH but nothing else. This will also cause an error when attempting to 
+        # retrieve contents from the 'offensive_features' dictionary since nothing will even be inserted.""" 
+        
+        if player_id in offensive_features:
+            player_stats = offensive_features[player_id]
+        else:
+            return [-1 for i in range(0, num_features)]
+        if len(player_stats) < 4:                          # Not enough games played to create reasonable stats.
+            return [-1 for i in range(0, num_features)]
+        for idx, games in enumerate(player_stats):
+            if games[0] == game_id:                        # NOTE: Can this be optimised with using numpy arrays?
+                return player_stats[idx - 1][1:]           # Return the stats from the day before. Should we particularily focus on a seaosn? Should things get a rest?
+        return [-1 for i in range(0, num_features)]                                    
         
     def sub_offensive_features(self, offensive_features, batters, game_id):
 
@@ -254,8 +288,8 @@ class Feature_Consolidater():
 
     def normalise_list(self, features, num_feats):
 
-        """# Function Description: Given a list of stats, normalise the contents within the list.
-        # Function Parameters: features (The features.), num_feats (The number of features to segregate.)
+        """ Function Description: Given a list of stats, normalise the contents within the list.
+        # Function Parameters: features (List: The features.), num_feats (Int: The number of features to segregate.)
         # Function Throws: Nothing
         # Function Returns: The normalised values."""
         
@@ -325,3 +359,40 @@ class Feature_Consolidater():
         if len(game_features) != 62: raise ValueError("The correct number of features was not returned.")
         return game_features
 
+    def _compile_game_features(self, fp):
+
+        """ Function Description: Gather all the features from every game and separate them into X and Y.
+        # Function Parameters: fp (Feature_Pack: The containmnet of all features into one object for better organisation.)
+        # Function Throws: Nothing
+        # Function Returns: X, Y (List: The containment of all features.), (List: The outcomes of every game.)
+        """
+        lh = Log_Helper()
+        X = []
+        Y = []
+        num_games = len(fp.game_outcomes)
+        lh.print_progress_bar(0, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)    # Initial call to print 0% progress
+        for num, game_stats in enumerate(fp.game_outcomes):
+            try:
+                X.append(self.get_game_features(fp.all_batters, fp.offensive_features, fp.all_pitchers, fp.starting_pitchers, fp.relief_pitchers, fp.pitching_features, fp.winning_pct, game_stats))
+                Y.append(game_stats[8])
+            except Exception as e:
+                print("An error as occurred at {}. The error: {}".format(game_stats[0], str(e)))
+            lh.print_progress_bar(num + 1, num_games, prefix = 'Progress:', suffix = 'Complete', length = 50)
+        return X, Y
+
+    def get_all_game_features(self, fp, query_loc, get_again_flag=False):
+
+        """ Function Description: Retrieve the features for every single game and return it has a list.
+        # Function Parameters: fp (Feature_Pack: All the features in one object.)
+        #    query_loc (String: The location of results of previous queries.), 
+        #    get_again_flag (Boolean: The function will call the database overwriting the results. (CI))
+        # Function Throws: Nothing
+        # Function Returns: X, Y (List: The containment of all features.), (List: The outcomes of every game.) 
+        """
+
+        if get_again_flag == False:                                                    # Use the information already provided.
+            with open(query_loc, 'rb') as f:
+                return load(f), [game_stats[8] for game_stats in fp.game_outcomes]     # Returning X, Y. Y does not need to be stored since it is quick to derive.
+        X, Y = self._compile_game_features(fp)   
+        with open(query_loc, 'wb') as f: dump(X, f)
+        return X, Y

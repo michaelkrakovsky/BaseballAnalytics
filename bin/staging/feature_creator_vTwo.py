@@ -22,18 +22,18 @@ class Offensive_Features(Generic_Features):
 
     def __init__(self, db_connection):
 
-        # Class Description: The class will direct the queries in creating the stats and inputting them into the database. To be exact, 
+        """ Class Description: The class will direct the queries in creating the stats and inputting them into the database. To be exact, 
         #    I will create the tables prior to executing the queries. The tables can be found in the schema diagram.
-        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.)
+        # Class Instantiators: db_connection (pymysql.connections.Connection: The connection to the database.) """
 
         Generic_Features.__init__(self, db_connection)
 
     def insert_offensive_information(self, player_id):
 
-        # Function Description: The query will insert all the necessary offensive information (the basis at least) into the database.
-        # Function Parameters: player_id (The player for who's values you wish to retrieve.)
+        """ Function Description: The query will insert all the necessary offensive information (the basis at least) into the database.
+        # Function Parameters: player_id (String: The player for who's values you wish to retrieve.)
         # Function Throws: Nothing
-        # Function Returns: Nothing
+        # Function Returns: Nothing """
 
         # 10 Day Moving BA, 10 Day OBP, 10 Day SLG
         offensive_query = """insert into offensive_features(Game_ID, player_id, Ten_Rolling_BA, Ten_Rolling_OBP, Ten_Rolling_SLG)
@@ -63,10 +63,10 @@ class Offensive_Features(Generic_Features):
 
     def create_all_offensive_information(self):
 
-        # Function Description: The orchestration function which fills the offensive features with all information for each player.\
+        """ Function Description: The orchestration function which fills the offensive features with all information for each player.\
         # Function Parameters: Nothing
         # Function Throws: Nothing
-        # Function Returns: Nothing
+        # Function Returns: Nothing """
 
         qs = Queries(self.__db_connection__)
         lh = Log_Helper()
