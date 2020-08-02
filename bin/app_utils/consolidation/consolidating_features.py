@@ -60,7 +60,6 @@ class Feature_Consolidater():
         # Function Returns: (Dict: Containing the teams who participated in the game with their respective winning percentages.)"""
 
         most_recent_game = game_outcomes_window[-1]              # A sample record: ('BOS199004090', 1990, 9, 4, 5, 2, 'BOS', 'DET', 0)
-        game_id = most_recent_game[0]
         home_team = most_recent_game[6]
         vis_team = most_recent_game[7]
         current_record = {}
@@ -69,7 +68,7 @@ class Feature_Consolidater():
         current_record[home_team] = [0, 0]                       # Ensure that the team is inserted into the dictionary.
         current_record[vis_team] = [0, 0]
         if len(game_outcomes_window) == 1:                       # There is nothing we can do at the beginning of the season.
-            return {game_id: {home_team: 0.0, vis_team: 0.0}}
+            return {home_team: 0.0, vis_team: 0.0}
         for game in reversed(game_outcomes_window[:-1]):         # Start after the most recent game since that is what we are analysing.
             game_home_team = game[6]
             game_vis_team = game[7]
@@ -89,7 +88,7 @@ class Feature_Consolidater():
                 return self._calc_win_pct(current_record)                                        # End when all the games are accounted for.
         return self._calc_win_pct(current_record)                                                # If reached, the team did not play n games.
 
-    def get_win_pct(self, game_outcomes, num_games=12):
+    def get_win_pct(self, game_outcomes, num_games=10):
 
         """ Function Description: Finding the winning percentage of the participating teams for the last x games.
         # Function Parameters: game_outcomes (List: A list of tuples containing the game outcomes of each game.)
@@ -100,7 +99,7 @@ class Feature_Consolidater():
         current_year = 1990
         game_pct_attributes = {}
         while current_year <= 2019:
-            year_game_outcomes = [outcome for outcome in game_outcomes if outcome[1] == current_year]   # Only the record of a team in the same year is relavent. (outcome[1] = game year)
+            year_game_outcomes = [outcome for outcome in game_outcomes if outcome[1] == current_year]                  # Only the record of a team in the same year is relavent. (outcome[1] = game year)
             for num, outcome in enumerate(year_game_outcomes):               
                 game_pct_attributes[outcome[0]] = self._get_last_n_games_pct(year_game_outcomes[: num + 1], num_games)
             current_year += 1
@@ -161,18 +160,15 @@ class Feature_Consolidater():
         
     def sub_offensive_features(self, offensive_features, batters, game_id):
 
-        """# Function Description: Substitute the batters ids provided with the batting features. The features will be returned in the same order the names are provided.
-        # Function Parameters: offensive_features (The dictionary containing the player ids that are tied to the offensive features.) 
-        #    batters (The player id we wish to retrieve the data for.), game_id (The game id needed to look backwards.) 
+        """ Function Description: Substitute the batters ids provided with the batting features. The features will be returned in the same order the names are provided.
+        # Function Parameters: offensive_features (Dict: The dictionary containing the player ids that are tied to the offensive features.) 
+        #    batters (List: The player ids we wish to retrieve the data for.), game_id (String: The game id needed to look backwards.) 
         # Function Throws: Nothing
         # Function Returns: A complete list of the featues to be inputted into the model. The list will vary depending on the number of players and features for each player."""
 
         game_offensive_features = []
         for batter in batters:
-            try:
-                game_offensive_features += self.get_offensive_features(offensive_features, batter, game_id)
-            except Exception:
-                raise ValueError("The batter caused the error: {}".format(batter))
+            game_offensive_features += self.get_offensive_features(offensive_features, batter, game_id)
         return game_offensive_features
 
     def get_relief_pitchers(self, all_pitchers, relief_pitchers, game_id, pitcher_team, year):
@@ -301,14 +297,14 @@ class Feature_Consolidater():
     def get_game_features(self, all_batters, offensive_features, all_pitchers, starting_pitchers, relief_pitchers, pitching_features, winning_pct, game_stats):
 
         """# Function Description: Get all the features for a given game id. This involves getting the players who played in the game and then retrieving their associated features.
-        # Function Parameters: all_batters (All of the batters information.), 
-        #    offensive_features (All of the offensive features that are used to predict outcome.), 
-        #    all_pitchers (The dictionary containing all the pitchers who participated in every game.),
-        #    starting_pitchers (The starting pitchers in all the games.), 
-        #    relief_pitchers (The relief pitchers in all the games.), 
-        #    pitching_features (The pitching features in all the games. (Both relievers and starters.)),
-        #    game_stats (The game id with all pertinent information.), 
-        #    winning_pct (The n game rolling winning percentage.)
+        # Function Parameters: all_batters (Dict: All of the batters information.), 
+        #    offensive_features (Dict: All of the offensive features that are used to predict outcome.), 
+        #    all_pitchers (Dict: The dictionary containing all the pitchers who participated in every game.),
+        #    starting_pitchers (Dict: The starting pitchers in all the games.), 
+        #    relief_pitchers (Dict: The relief pitchers in all the games.), 
+        #    pitching_features (Dict: The pitching features in all the games. (Both relievers and starters.)),
+        #    game_stats (Dict: The game id with all pertinent information.), 
+        #    winning_pct (Dict: The n game rolling winning percentage.)
         # Function Throws: ValueError (Thrown when the incorrect number of features are returned.)
         # Function Returns: A single list containing the features of the game."""
 
@@ -325,7 +321,7 @@ class Feature_Consolidater():
         game_features += self.sub_pitching_features(pitching_features, [self.get_starting_pitcher(starting_pitchers, game_stats[0], game_stats[7])], game_stats[0])
         game_features += self.sub_offensive_features(offensive_features, self.get_starting_batters(all_batters, game_stats[0], 0), game_stats[0])
         game_features += self.sub_relief_pitching_features(pitching_features, self.get_relief_pitchers(all_pitchers, relief_pitchers, game_stats[0], game_stats[7], game_stats[1]), game_stats[0])
-        game_features.append(winning_pct[game_id][vis_team])
+        game_features.append(winning_pct[game_id][vis_team]) 
         if len(game_features) != 62: raise ValueError("The correct number of features was not returned.")
         return game_features
 
